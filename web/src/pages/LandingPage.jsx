@@ -22,37 +22,37 @@ const floatingCards = [
     color: "from-violet-500 to-purple-600",
   },
   {
-    name: "Mang Erning",
+    name: "Ernesto Dela Cruz",
     role: "Master Electrician",
     rating: 4.8,
     skills: ["Wiring", "Installation"],
-    avatar: "ME",
+    avatar: "ED",
     color: "from-yellow-500 to-orange-500",
   },
   {
-    name: "Kuya Boyet",
+    name: "Roberto Ramos",
     role: "Carpenter & Furniture Maker",
     rating: 5.0,
     skills: ["Woodwork", "Renovation"],
-    avatar: "KB",
+    avatar: "RR",
     color: "from-amber-600 to-yellow-700",
   },
 ];
 
 const demoMatches = [
   {
-    name: "Kuya Boyet",
+    name: "Roberto Ramos",
     role: "Carpenter & Furniture Maker",
     rating: 5.0,
-    avatar: "KB",
+    avatar: "RR",
     color: "from-amber-600 to-yellow-700",
     match: 97,
   },
   {
-    name: "Mang Romy",
-    role: "General Contractor",
-    rating: 4.7,
-    avatar: "MR",
+    name: "Fernando Cruz",
+    role: "Door & Window Specialist",
+    rating: 4.8,
+    avatar: "FC",
     color: "from-orange-500 to-red-500",
     match: 91,
   },
@@ -117,7 +117,7 @@ export default function LandingPage() {
 
       {/* ── Navbar ───────────────────────────────────────────────── */}
       <nav className="fixed top-0 w-full z-50 backdrop-blur-md bg-base-100/80 border-b border-base-200">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="w-full px-8 lg:px-16 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-white" />
@@ -136,23 +136,23 @@ export default function LandingPage() {
       </nav>
 
       {/* ── Hero ─────────────────────────────────────────────────── */}
-      <section className="relative pt-32 pb-24 px-6 overflow-hidden">
+      <section className="relative pt-32 pb-24 overflow-hidden">
         {/* Background blobs */}
-        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-[800px] h-[500px] bg-gradient-to-r from-violet-600/20 via-purple-500/10 to-blue-500/20 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute top-40 right-0 w-72 h-72 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-72 h-72 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-20 left-1/4 w-[900px] h-[600px] bg-gradient-to-r from-violet-600/20 via-purple-500/10 to-blue-500/20 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute top-40 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="max-w-6xl mx-auto relative">
-          <div className="flex flex-col lg:flex-row items-center gap-16">
+        <div className="w-full px-8 lg:px-16 relative">
+          <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
 
             {/* Left: Text */}
-            <div className="flex-1 text-center lg:text-left">
+            <div className="flex-1 text-left">
               <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 text-violet-400 text-sm px-4 py-1.5 rounded-full mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
-                AI-Powered skilled worker Matching
+                AI-Powered Skilled Worker Matching
               </div>
 
-              <h1 className="text-5xl lg:text-6xl font-extrabold leading-tight mb-6">
+              <h1 className="text-4xl sm:text-5xl xl:text-6xl font-extrabold leading-tight mb-6">
                 Describe your problem.{" "}
                 <span className="bg-gradient-to-r from-violet-500 via-purple-500 to-blue-500 bg-clip-text text-transparent">
                   AI finds the right skilled worker
@@ -160,12 +160,12 @@ export default function LandingPage() {
                 in seconds.
               </h1>
 
-              <p className="text-lg text-base-content/60 mb-10 max-w-xl mx-auto lg:mx-0">
+              <p className="text-lg text-base-content/60 mb-10 max-w-2xl">
                 Stop scrolling through endless profiles. GaLink understands your exact need
                 and instantly surfaces the best Filipino skilled workers for the job.
               </p>
 
-              <div className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-start">
+              <div className="flex flex-col sm:flex-row gap-3">
                 <Link
                   to="/register"
                   className="btn btn-primary rounded-full px-8 gap-2 text-base"
@@ -182,7 +182,7 @@ export default function LandingPage() {
             </div>
 
             {/* Right: Floating skilled worker cards */}
-            <div className="flex-1 relative h-96 w-full max-w-md mx-auto lg:mx-0">
+            <div className="flex-1 relative h-96 w-full max-w-lg">
               {floatingCards.map((card, i) => (
                 <div
                   key={i}
@@ -236,33 +236,37 @@ export default function LandingPage() {
       </section>
 
       {/* ── Problem ──────────────────────────────────────────────── */}
-      <section className="py-20 px-6 bg-base-200/50">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold mb-4">Hiring skilled workers is broken.</h2>
-          <p className="text-base-content/60 mb-10">
-            Traditional platforms waste your time. GaLink fixes that.
-          </p>
-          <div className="flex flex-col gap-4 text-left">
-            {problems.map((p, i) => (
-              <div key={i} className="flex items-start gap-3 bg-base-200 border border-base-300 rounded-xl p-4">
-                <div className="w-6 h-6 rounded-full bg-error/10 flex items-center justify-center flex-shrink-0 mt-0.5">
-                  <span className="text-error text-xs font-bold">✕</span>
-                </div>
-                <p className="text-base-content/70">{p}</p>
+      <section className="py-20 bg-base-200/50">
+        <div className="w-full px-8 lg:px-16">
+          <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
+            <div className="lg:w-2/5">
+              <h2 className="text-3xl font-bold mb-4">Hiring skilled workers is broken.</h2>
+              <p className="text-base-content/60 mb-6">
+                Traditional platforms waste your time. GaLink fixes that.
+              </p>
+              <div className="flex items-center gap-2 text-success font-semibold">
+                <CheckCircle className="w-5 h-5" />
+                GaLink solves all of this with AI.
               </div>
-            ))}
-          </div>
-          <div className="mt-6 flex items-center justify-center gap-2 text-success font-semibold">
-            <CheckCircle className="w-5 h-5" />
-            GaLink solves all of this with AI.
+            </div>
+            <div className="lg:w-3/5 flex flex-col gap-4">
+              {problems.map((p, i) => (
+                <div key={i} className="flex items-start gap-3 bg-base-200 border border-base-300 rounded-xl p-4">
+                  <div className="w-6 h-6 rounded-full bg-error/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <span className="text-error text-xs font-bold">✕</span>
+                  </div>
+                  <p className="text-base-content/70">{p}</p>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
       {/* ── How It Works ─────────────────────────────────────────── */}
-      <section className="py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
+      <section className="py-24">
+        <div className="w-full px-8 lg:px-16">
+          <div className="mb-16">
             <h2 className="text-3xl font-bold mb-3">How it works</h2>
             <p className="text-base-content/60">From problem to hired in under 5 minutes.</p>
           </div>
@@ -279,8 +283,8 @@ export default function LandingPage() {
                 <div className="absolute -top-3 -right-3 w-7 h-7 rounded-full bg-base-100 border border-base-300 flex items-center justify-center text-xs font-bold text-base-content/40">
                   {i + 1}
                 </div>
-                <h3 className="font-bold text-lg mb-2">{step.title}</h3>
-                <p className="text-base-content/60 text-sm leading-relaxed">{step.desc}</p>
+                <h3 className="font-bold text-lg mb-2 text-left">{step.title}</h3>
+                <p className="text-base-content/60 text-sm leading-relaxed text-left">{step.desc}</p>
               </div>
             ))}
           </div>
@@ -288,9 +292,9 @@ export default function LandingPage() {
       </section>
 
       {/* ── Demo Teaser ──────────────────────────────────────────── */}
-      <section className="py-20 px-6 bg-base-200/50">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-12">
+      <section className="py-20 bg-base-200/50">
+        <div className="w-full px-8 lg:px-16">
+          <div className="mb-12">
             <h2 className="text-3xl font-bold mb-3">See the AI in action</h2>
             <p className="text-base-content/60">Type any problem. Watch our AI match you instantly.</p>
           </div>
@@ -361,14 +365,14 @@ export default function LandingPage() {
       </section>
 
       {/* ── Features ─────────────────────────────────────────────── */}
-      <section className="py-24 px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-16">
+      <section className="py-24">
+        <div className="w-full px-8 lg:px-16">
+          <div className="mb-16">
             <h2 className="text-3xl font-bold mb-3">Everything you need to hire smarter</h2>
             <p className="text-base-content/60">Purpose-built for the Filipino freelancing ecosystem.</p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {features.map((f, i) => (
               <div key={i} className="group bg-base-200 border border-base-300 rounded-2xl p-6 hover:border-primary/30 hover:bg-base-200/80 transition-all hover:-translate-y-0.5">
                 <div className="w-12 h-12 bg-base-300 rounded-xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
@@ -383,24 +387,26 @@ export default function LandingPage() {
       </section>
 
       {/* ── Bottom CTA ───────────────────────────────────────────── */}
-      <section className="py-24 px-6">
-        <div className="max-w-3xl mx-auto">
-          <div className="relative bg-gradient-to-br from-violet-600 via-purple-600 to-blue-600 rounded-3xl p-12 text-center overflow-hidden">
+      <section className="py-24 px-8 lg:px-16">
+        <div className="w-full">
+          <div className="relative bg-gradient-to-br from-violet-600 via-purple-600 to-blue-600 rounded-3xl p-12 overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent_50%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.05),transparent_50%)]" />
 
-            <div className="relative">
-              <div className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-sm px-4 py-1.5 rounded-full mb-6">
-                <Users className="w-3.5 h-3.5" />
-                Join today — it's free
+            <div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-8">
+              <div className="flex-1">
+                <div className="inline-flex items-center gap-2 bg-white/10 text-white/80 text-sm px-4 py-1.5 rounded-full mb-6">
+                  <Users className="w-3.5 h-3.5" />
+                  Join today — it's free
+                </div>
+                <h2 className="text-4xl font-extrabold text-white mb-4">
+                  Ready to find your perfect skilled worker?
+                </h2>
+                <p className="text-white/70 text-lg">
+                  Stop wasting time. Let AI do the matching.
+                </p>
               </div>
-              <h2 className="text-4xl font-extrabold text-white mb-4">
-                Ready to find your perfect skilled worker?
-              </h2>
-              <p className="text-white/70 mb-8 text-lg">
-                Stop wasting time. Let AI do the matching.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <div className="flex flex-col sm:flex-row gap-3 flex-shrink-0">
                 <Link
                   to="/register"
                   className="btn bg-white text-violet-700 hover:bg-white/90 rounded-full px-8 gap-2 border-0 text-base font-bold"
@@ -420,8 +426,8 @@ export default function LandingPage() {
       </section>
 
       {/* ── Footer ───────────────────────────────────────────────── */}
-      <footer className="border-t border-base-200 py-8 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+      <footer className="border-t border-base-200 py-8">
+        <div className="w-full px-8 lg:px-16 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
               <Sparkles className="w-3 h-3 text-white" />
