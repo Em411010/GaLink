@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import { createServer } from "http";
+import path from "path";
+import { fileURLToPath } from "url";
 import { connectDB } from "./config/db.js";
 import { initSocket } from "./config/socket.js";
 import { errorHandler, notFound } from "./middleware/error.middleware.js";
@@ -17,6 +19,8 @@ import matchRoutes from "./routes/match.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import verificationRoutes from "./routes/verification.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 const app = express();
 const httpServer = createServer(app);
 initSocket(httpServer);
@@ -35,6 +39,12 @@ app.use("/api/matches", matchRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/verification", verificationRoutes);
 app.use("/api/admin", adminRoutes);
+if (process.env.NODE_ENV === "production") {
+  app.use(express.static(path.join(__dirname, "..", "dist")));
+  app.get(/^(?!\/api).*/, (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "dist", "index.html"));
+  });
+}
 app.use(notFound);
 app.use(errorHandler);
 const PORT = process.env.PORT || 5000;
