@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import useAuthStore from "./store/useAuthStore";
 import useThemeStore from "./store/useThemeStore";
 import Layout from "./components/layout/Layout";
+import AdminLayout from "./components/layout/AdminLayout";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -15,6 +16,16 @@ import MessagesPage from "./pages/MessagesPage";
 import ProfilePage from "./pages/ProfilePage";
 import PostDetailPage from "./pages/PostDetailPage";
 import VerificationPage from "./pages/VerificationPage";
+import AdminDashboard from "./pages/AdminDashboard";
+import AdminUsers from "./pages/AdminUsers";
+import AdminClearances from "./pages/AdminClearances";
+import AdminPosts from "./pages/AdminPosts";
+import AdminReels from "./pages/AdminReels";
+import AdminKYC from "./pages/AdminKYC";
+function AdminRoute({ children }) {
+  const { user } = useAuthStore();
+  return user?.isAdmin ? children : <Navigate to="/feed" replace />;
+}
 function ProtectedRoute({ children }) {
   const { user } = useAuthStore();
   return user ? children : <Navigate to="/" replace />;
@@ -46,6 +57,14 @@ export default function App() {
           <Route path="/profile/:id" element={<ProfilePage />} />
           <Route path="/verification" element={<VerificationPage />} />
           <Route path="/post/:id" element={<PostDetailPage />} />
+        </Route>
+        <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
+          <Route path="/admin" element={<AdminDashboard />} />
+          <Route path="/admin/users" element={<AdminUsers />} />
+          <Route path="/admin/kyc" element={<AdminKYC />} />
+          <Route path="/admin/clearances" element={<AdminClearances />} />
+          <Route path="/admin/posts" element={<AdminPosts />} />
+          <Route path="/admin/reels" element={<AdminReels />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

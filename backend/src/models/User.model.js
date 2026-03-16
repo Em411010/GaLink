@@ -13,6 +13,7 @@ const userSchema = new mongoose.Schema({
   skills: [{ type: String, trim: true }],
   experience: { type: String, default: "" },
   hourlyRate: { type: Number, default: 0 },
+  isAdmin: { type: Boolean, default: false },
   isHirer: { type: Boolean, default: false },
   isFreelancer: { type: Boolean, default: false },
   isOpenForWork: { type: Boolean, default: false },
@@ -31,6 +32,8 @@ const userSchema = new mongoose.Schema({
   },
   selfieUrl: { type: String, default: "" },    // KYC live selfie
   selfieVerified: { type: Boolean, default: false },
+  kycStatus: { type: String, default: "" }, // "" | "pending" | "approved" | "rejected"
+  kycRejectedReason: { type: String, default: "" },
   // Level 3: Verified Freelancer
   clearance: {
     url: { type: String, default: "" },
@@ -38,6 +41,8 @@ const userSchema = new mongoose.Schema({
     verified: { type: Boolean, default: false },
     uploadedAt: Date,
   },
+  clearanceStatus: { type: String, default: "" }, // "" | "pending" | "approved" | "rejected"
+  clearanceRejectedReason: { type: String, default: "" },
 
   chatbotQueries: [{ query: String, extractedSkills: [String], timestamp: { type: Date, default: Date.now } }],
   averageRating: { type: Number, default: 0 },

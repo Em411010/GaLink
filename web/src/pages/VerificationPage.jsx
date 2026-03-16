@@ -7,7 +7,7 @@ import {
   Mail, CreditCard, Camera, FileText,
   FolderOpen, ScrollText, Check, ChevronRight,
   Upload, Trash2, ExternalLink, Loader2,
-  Lock, AlertTriangle,
+  Lock, AlertTriangle, Clock,
 } from "lucide-react";
 import { BadgeCard } from "../components/badge/BadgeSystem";
 
@@ -22,7 +22,13 @@ export default function VerificationPage() {
   const [checklist, setChecklist] = useState(null);
   const [badgeLevel, setBadgeLevel] = useState(user?.badgeLevel || 0);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(null); // key of the item being submitted
+  const [submitting, setSubmitting] = useState(null);
+  const [kycStatus, setKycStatus] = useState("");
+  const [kycRejectedReason, setKycRejectedReason] = useState("");
+  const [governmentIdUploaded, setGovernmentIdUploaded] = useState(false);
+  const [selfieUploaded, setSelfieUploaded] = useState(false);
+  const [clearanceStatus, setClearanceStatus] = useState("");
+  const [clearanceRejectedReason, setClearanceRejectedReason] = useState("");
 
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [termsChecked, setTermsChecked] = useState(false);
@@ -52,6 +58,12 @@ export default function VerificationPage() {
       const res = await verificationAPI.getStatus();
       setChecklist(res.data.checklist);
       setBadgeLevel(res.data.badgeLevel);
+      setKycStatus(res.data.kycStatus || "");
+      setKycRejectedReason(res.data.kycRejectedReason || "");
+      setGovernmentIdUploaded(res.data.governmentIdUploaded || false);
+      setSelfieUploaded(res.data.selfieUploaded || false);
+      setClearanceStatus(res.data.clearanceStatus || "");
+      setClearanceRejectedReason(res.data.clearanceRejectedReason || "");
     } catch {
       toast.error("Failed to load verification status");
     } finally {
@@ -105,9 +117,10 @@ export default function VerificationPage() {
     try {
       const fd = new FormData();
       fd.append(key === "governmentId" ? "governmentId" : key === "selfie" ? "selfie" : "clearance", file);
-      const res = await apiCall(fd);
-      toast.success("Document uploaded & verified!");
-      setBadgeLevel(res.data.badgeLevel);
+      await apiCall(fd);
+      toast.success("Document uploaded! Awaiting admin review.");
+      if (key === "governmentId") setGovernmentIdUploaded(true);
+      if (key === "selfie") setSelfieUploaded(true);
       await fetchStatus();
       await refreshUser();
     } catch {
@@ -515,22 +528,56 @@ export default function VerificationPage() {
           </button>
         );
       case "governmentId":
+        if (governmentIdUploaded) {
+          return <span className="badge badge-warning gap-1"><Clock size={12} /> Pending Approval</span>;
+        }
+        if (kycStatus === "rejected" && !governmentIdUploaded) {
+          return (
+            <div className="flex flex-col items-end gap-1">
+              <span className="badge badge-error badge-sm">Rejected{kycRejectedReason ? `: ${kycRejectedReason}` : ""}</span>
+              <>
+                <input type="file" accept="image/*,.pdf" ref={govIdRef} className="hidden"
+                  onChange={() => handleUpload("governmentId", verificationAPI.uploadGovernmentId, govIdRef)} />
+                <button className={`${btnClass} btn-sm`} onClick={() => govIdRef.current?.click()} disabled={submitting === "governmentId"}>
+                  {submitting === "governmentId" ? <Loader2 size={14} className="animate-spin" /> : <><CreditCard size={14} /> Re-upload</>}
+                </button>
+              </>
+            </div>
+          );
+        }
         return (
           <>
             <input type="file" accept="image/*,.pdf" ref={govIdRef} className="hidden"
               onChange={() => handleUpload("governmentId", verificationAPI.uploadGovernmentId, govIdRef)} />
-            <button className={btnClass} onClick={() => govIdRef.current?.click()} disabled={isLoading}>
-              {isLoading ? <Loader2 size={14} className="animate-spin" /> : <><CreditCard size={14} /> Upload</>}
+            <button className={btnClass} onClick={() => govIdRef.current?.click()} disabled={submitting === "governmentId"}>
+              {submitting === "governmentId" ? <Loader2 size={14} className="animate-spin" /> : <><CreditCard size={14} /> Upload ID</>}
             </button>
           </>
         );
       case "selfie":
+        if (selfieUploaded) {
+          return <span className="badge badge-warning gap-1"><Clock size={12} /> Pending Approval</span>;
+        }
+        if (kycStatus === "rejected" && !selfieUploaded) {
+          return (
+            <div className="flex flex-col items-end gap-1">
+              <span className="badge badge-error badge-sm">Rejected</span>
+              <>
+                <input type="file" accept="image/*" capture="user" ref={selfieRef} className="hidden"
+                  onChange={() => handleUpload("selfie", verificationAPI.uploadSelfie, selfieRef)} />
+                <button className={`${btnClass} btn-sm`} onClick={() => selfieRef.current?.click()} disabled={submitting === "selfie"}>
+                  {submitting === "selfie" ? <Loader2 size={14} className="animate-spin" /> : <><Camera size={14} /> Re-take Selfie</>}
+                </button>
+              </>
+            </div>
+          );
+        }
         return (
           <>
             <input type="file" accept="image/*" capture="user" ref={selfieRef} className="hidden"
               onChange={() => handleUpload("selfie", verificationAPI.uploadSelfie, selfieRef)} />
-            <button className={btnClass} onClick={() => selfieRef.current?.click()} disabled={isLoading}>
-              {isLoading ? <Loader2 size={14} className="animate-spin" /> : <><Camera size={14} /> Take Selfie</>}
+            <button className={btnClass} onClick={() => selfieRef.current?.click()} disabled={submitting === "selfie"}>
+              {submitting === "selfie" ? <Loader2 size={14} className="animate-spin" /> : <><Camera size={14} /> Take Selfie</>}
             </button>
           </>
         );
@@ -564,12 +611,31 @@ export default function VerificationPage() {
           </button>
         );
       case "clearance":
+        if (clearanceStatus === "pending") {
+          return (
+            <span className="badge badge-warning gap-1"><Clock size={12} /> Awaiting Review</span>
+          );
+        }
+        if (clearanceStatus === "rejected") {
+          return (
+            <div className="flex flex-col items-end gap-1">
+              <span className="badge badge-error badge-sm">Rejected{clearanceRejectedReason ? `: ${clearanceRejectedReason}` : ""}</span>
+              <>
+                <input type="file" accept="image/*,.pdf" ref={clearanceRef} className="hidden"
+                  onChange={() => handleUpload("clearance", verificationAPI.uploadClearance, clearanceRef)} />
+                <button className={`${btnClass} btn-sm`} onClick={() => clearanceRef.current?.click()} disabled={submitting === "clearance"}>
+                  {submitting === "clearance" ? <Loader2 size={14} className="animate-spin" /> : <><ScrollText size={14} /> Re-upload</>}
+                </button>
+              </>
+            </div>
+          );
+        }
         return (
           <>
             <input type="file" accept="image/*,.pdf" ref={clearanceRef} className="hidden"
               onChange={() => handleUpload("clearance", verificationAPI.uploadClearance, clearanceRef)} />
-            <button className={btnClass} onClick={() => clearanceRef.current?.click()} disabled={isLoading}>
-              {isLoading ? <Loader2 size={14} className="animate-spin" /> : <><ScrollText size={14} /> Upload</>}
+            <button className={btnClass} onClick={() => clearanceRef.current?.click()} disabled={submitting === "clearance"}>
+              {submitting === "clearance" ? <Loader2 size={14} className="animate-spin" /> : <><ScrollText size={14} /> Upload</>}
             </button>
           </>
         );

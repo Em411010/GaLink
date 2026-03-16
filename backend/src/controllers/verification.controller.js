@@ -8,7 +8,16 @@ export async function getVerificationStatus(req, res, next) {
   try {
     const user = await User.findById(req.user._id).select("-password -chatbotQueries -resumeText");
     const checklist = getBadgeChecklist(user);
-    res.json({ badgeLevel: user.badgeLevel, checklist });
+    res.json({
+      badgeLevel: user.badgeLevel,
+      checklist,
+      kycStatus: user.kycStatus || "",
+      kycRejectedReason: user.kycRejectedReason || "",
+      governmentIdUploaded: !!user.governmentId?.url,
+      selfieUploaded: !!user.selfieUrl,
+      clearanceStatus: user.clearanceStatus || "",
+      clearanceRejectedReason: user.clearanceRejectedReason || "",
+    });
   } catch (error) { next(error); }
 }
 
@@ -47,7 +56,7 @@ export async function confirmEmailOtp(req, res, next) {
   } catch (error) { next(error); }
 }
 
-// POST /api/verification/government-id — upload gov ID
+// POST /api/verification/government-id — upload gov ID (pending admin review)
 export async function uploadGovernmentId(req, res, next) {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
@@ -56,27 +65,33 @@ export async function uploadGovernmentId(req, res, next) {
     user.governmentId = {
       url: req.file.path,
       type: idType || "Government ID",
-      verified: true, // auto-approve for now
+      verified: false, // admin must approve
       uploadedAt: new Date(),
     };
-    await refreshBadge(user);
-    res.json({ badgeLevel: user.badgeLevel, governmentId: user.governmentId });
+    // Mark pending for admin review immediately on upload
+    user.kycStatus = "pending";
+    user.kycRejectedReason = "";
+    await user.save();
+    res.json({ message: "Government ID uploaded. Awaiting admin review.", kycStatus: user.kycStatus || "" });
   } catch (error) { next(error); }
 }
 
-// POST /api/verification/selfie — upload KYC selfie
+// POST /api/verification/selfie — upload KYC selfie (pending admin review)
 export async function uploadSelfie(req, res, next) {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
     const user = await User.findById(req.user._id);
     user.selfieUrl = req.file.path;
-    user.selfieVerified = true; // auto-approve for now
-    await refreshBadge(user);
-    res.json({ badgeLevel: user.badgeLevel, selfieUrl: user.selfieUrl });
+    user.selfieVerified = false; // admin must approve
+    // Mark pending for admin review immediately on upload
+    user.kycStatus = "pending";
+    user.kycRejectedReason = "";
+    await user.save();
+    res.json({ message: "Selfie uploaded. Awaiting admin review.", kycStatus: user.kycStatus || "" });
   } catch (error) { next(error); }
 }
 
-// POST /api/verification/clearance — upload NBI or Police Clearance
+// POST /api/verification/clearance — upload NBI or Police Clearance (pending admin review)
 export async function uploadClearance(req, res, next) {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
@@ -85,11 +100,13 @@ export async function uploadClearance(req, res, next) {
     user.clearance = {
       url: req.file.path,
       type: clearanceType || "NBI",
-      verified: true, // auto-approve for now
+      verified: false, // admin must approve
       uploadedAt: new Date(),
     };
-    await refreshBadge(user);
-    res.json({ badgeLevel: user.badgeLevel, clearance: user.clearance });
+    user.clearanceStatus = "pending";
+    user.clearanceRejectedReason = "";
+    await user.save();
+    res.json({ message: "Clearance uploaded. Awaiting admin review.", clearanceStatus: "pending" });
   } catch (error) { next(error); }
 }
 

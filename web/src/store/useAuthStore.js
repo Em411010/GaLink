@@ -11,6 +11,7 @@ const useAuthStore = create(
         try {
           const res = await authAPI.login(data);
           set({ user: res.data, isLoading: false });
+          return res.data;
         } catch (error) {
           set({ isLoading: false });
           throw error;

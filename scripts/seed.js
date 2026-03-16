@@ -11,7 +11,7 @@ dotenv.config({ path: join(__dirname, '..', 'backend', '.env') });
 
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/galink';
 
-// ─── Schema (matches backend User.model.js) ──────────────────────────────────
+// ─── Schemas (mirrors backend models) ────────────────────────────────────────
 
 const userSchema = new mongoose.Schema({
   name: String,
@@ -25,6 +25,8 @@ const userSchema = new mongoose.Schema({
   hourlyRate: { type: Number, default: 0 },
   isFreelancer: { type: Boolean, default: false },
   isHirer: { type: Boolean, default: false },
+  isAdmin: { type: Boolean, default: false },
+  isOpenForWork: { type: Boolean, default: true },
   resumeUrl: { type: String, default: '' },
   resumeText: { type: String, default: '' },
   averageRating: { type: Number, default: 0 },
@@ -32,13 +34,15 @@ const userSchema = new mongoose.Schema({
   isVerified: { type: Boolean, default: false },
   isActive: { type: Boolean, default: true },
   badgeLevel: { type: Number, default: 0 },
-  phone: { type: String, default: '' },
-  phoneVerified: { type: Boolean, default: false },
   emailVerified: { type: Boolean, default: false },
   governmentId: mongoose.Schema.Types.Mixed,
   selfieUrl: { type: String, default: '' },
   selfieVerified: { type: Boolean, default: false },
+  kycStatus: { type: String, default: '' },
+  kycRejectedReason: { type: String, default: '' },
   clearance: mongoose.Schema.Types.Mixed,
+  clearanceStatus: { type: String, default: '' },
+  clearanceRejectedReason: { type: String, default: '' },
   portfolio: [{ title: String, description: String, imageUrl: String, link: String }],
 }, { timestamps: true });
 
@@ -47,7 +51,16 @@ const postSchema = new mongoose.Schema({
   content: String,
   imageUrl: { type: String, default: '' },
   likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-  comments: [{ author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, content: String, createdAt: { type: Date, default: Date.now } }],
+  comments: [{
+    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    content: String,
+    createdAt: { type: Date, default: Date.now },
+    replies: [{
+      author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+      content: String,
+      createdAt: { type: Date, default: Date.now },
+    }],
+  }],
   tags: [String],
   isPublic: { type: Boolean, default: true },
 }, { timestamps: true });
@@ -69,377 +82,12 @@ const User = mongoose.model('User', userSchema);
 const Post = mongoose.model('Post', postSchema);
 const Reel = mongoose.model('Reel', reelSchema);
 
-// ─── 30 Filipino Workers ─────────────────────────────────────────────────────
+// ─── Face profile photos (randomuser.me — stable seeded faces) ───────────────
 
-const users = [
-  // ── LOW-LEVEL / SKILLED TRADES (10) ──
-  {
-    name: 'Mang Erning Dela Cruz',
-    email: 'erning@example.com',
-    bio: 'Master electrician with 20+ years. Wiring, panel installation, troubleshooting. Buong Metro Manila.',
-    location: 'Quezon City, Metro Manila',
-    isFreelancer: true,
-    skills: ['Electrical Wiring', 'Panel Installation', 'Troubleshooting', 'Lighting', 'CCTV Installation'],
-    experience: '20 years',
-    hourlyRate: 350,
-    averageRating: 4.8,
-    totalRatings: 45,
-  },
-  {
-    name: 'Kuya Boyet Ramos',
-    email: 'boyet@example.com',
-    bio: 'Carpenter & furniture maker. Custom cabinets, wooden frames, general woodwork. Mura at quality ang gawa.',
-    location: 'Marikina, Metro Manila',
-    isFreelancer: true,
-    skills: ['Carpentry', 'Furniture Making', 'Cabinet Installation', 'Woodwork', 'Renovation'],
-    experience: '15 years',
-    hourlyRate: 400,
-    averageRating: 5.0,
-    totalRatings: 32,
-  },
-  {
-    name: 'Tatay Domeng Bautista',
-    email: 'domeng@example.com',
-    bio: 'Licensed plumber. Tubero for 25 years — water line, drainage, septic tank, toilet repair.',
-    location: 'Caloocan, Metro Manila',
-    isFreelancer: true,
-    skills: ['Plumbing', 'Pipe Fitting', 'Drainage', 'Septic Tank', 'Water Heater Installation'],
-    experience: '25 years',
-    hourlyRate: 300,
-    averageRating: 4.6,
-    totalRatings: 28,
-  },
-  {
-    name: 'Aling Nena Villanueva',
-    email: 'nena@example.com',
-    bio: 'Professional house cleaner & deep cleaning specialist. Bahay, condo, office. Maasahan at matiyaga.',
-    location: 'Pasig, Metro Manila',
-    isFreelancer: true,
-    skills: ['House Cleaning', 'Deep Cleaning', 'Office Cleaning', 'Laundry', 'Organizing'],
-    experience: '10 years',
-    hourlyRate: 200,
-    averageRating: 4.9,
-    totalRatings: 60,
-  },
-  {
-    name: 'Rod "Pintor" Magno',
-    email: 'rod@example.com',
-    bio: 'Professional painter — residential & commercial. Interior, exterior, waterproofing. Clean finish guaranteed.',
-    location: 'Las Piñas, Metro Manila',
-    isFreelancer: true,
-    skills: ['Painting', 'Waterproofing', 'Epoxy Flooring', 'Wall Repair', 'Varnishing'],
-    experience: '12 years',
-    hourlyRate: 350,
-    averageRating: 4.7,
-    totalRatings: 38,
-  },
-  {
-    name: 'Mang Tony Soriano',
-    email: 'tony@example.com',
-    bio: 'Mason & construction worker. Foundation, CHB walls, tiling, concrete finishing. Dala ko sarili kong tools.',
-    location: 'Valenzuela, Metro Manila',
-    isFreelancer: true,
-    skills: ['Masonry', 'Tiling', 'Concrete Work', 'CHB Wall', 'Plastering'],
-    experience: '18 years',
-    hourlyRate: 380,
-    averageRating: 4.5,
-    totalRatings: 22,
-  },
-  {
-    name: 'Jun "Welding King" Perez',
-    email: 'jun@example.com',
-    bio: 'Certified welder — steel gates, grills, railings, structural steel. Stick, MIG, TIG welding.',
-    location: 'Taguig, Metro Manila',
-    isFreelancer: true,
-    skills: ['Welding', 'Steel Fabrication', 'Gate Making', 'Grillwork', 'Railing Installation'],
-    experience: '14 years',
-    hourlyRate: 450,
-    averageRating: 4.8,
-    totalRatings: 30,
-  },
-  {
-    name: 'Lito Bernal',
-    email: 'lito@example.com',
-    bio: 'Aircon technician — cleaning, repair, installation. Window, split, cassette type. Freon recharging.',
-    location: 'Mandaluyong, Metro Manila',
-    isFreelancer: true,
-    skills: ['Aircon Cleaning', 'Aircon Repair', 'Aircon Installation', 'HVAC', 'Freon Recharging'],
-    experience: '8 years',
-    hourlyRate: 400,
-    averageRating: 4.6,
-    totalRatings: 50,
-  },
-  {
-    name: 'Danny Roofmaster Santos',
-    email: 'danny@example.com',
-    bio: 'Roofing specialist — yero replacement, gutter installation, waterproofing, leak repair. Walang tulo guaranteed.',
-    location: 'Muntinlupa, Metro Manila',
-    isFreelancer: true,
-    skills: ['Roofing', 'Gutter Installation', 'Waterproofing', 'Leak Repair', 'Metal Works'],
-    experience: '16 years',
-    hourlyRate: 400,
-    averageRating: 4.7,
-    totalRatings: 25,
-  },
-  {
-    name: 'Mang Carding Aquino',
-    email: 'carding@example.com',
-    bio: 'Gardener & landscaper. Lawn maintenance, pruning, plant installation, garden design. Green thumb since birth!',
-    location: 'Antipolo, Rizal',
-    isFreelancer: true,
-    skills: ['Landscaping', 'Gardening', 'Lawn Maintenance', 'Pruning', 'Plant Installation'],
-    experience: '12 years',
-    hourlyRate: 250,
-    averageRating: 4.9,
-    totalRatings: 35,
-  },
+const face = (gender, i) => `https://randomuser.me/api/portraits/${gender}/${i}.jpg`;
 
-  // ── TUTORS & EDUCATORS (10) ──
-  {
-    name: 'Teacher Jessa Mendoza',
-    email: 'jessa@example.com',
-    bio: 'Licensed math tutor — Grade 1 to College Algebra. Patient and engaging teaching style. Online & face-to-face.',
-    location: 'Makati, Metro Manila',
-    isFreelancer: true,
-    skills: ['Math Tutoring', 'Algebra', 'Calculus', 'Statistics', 'Online Teaching'],
-    experience: '8 years',
-    hourlyRate: 500,
-    averageRating: 4.9,
-    totalRatings: 55,
-  },
-  {
-    name: 'Sir Mark Evangelista',
-    email: 'mark@example.com',
-    bio: 'English & Filipino language tutor. IELTS prep, business English, creative writing. LET passer.',
-    location: 'Quezon City, Metro Manila',
-    isFreelancer: true,
-    skills: ['English Tutoring', 'IELTS Preparation', 'Filipino Language', 'Creative Writing', 'Business English'],
-    experience: '6 years',
-    hourlyRate: 450,
-    averageRating: 4.8,
-    totalRatings: 40,
-  },
-  {
-    name: 'Ms. Patricia Lim',
-    email: 'patricia@example.com',
-    bio: 'Science tutor specializing in Physics & Chemistry. Board exam reviewer. Makes science fun & easy to understand.',
-    location: 'Pasig, Metro Manila',
-    isFreelancer: true,
-    skills: ['Physics Tutoring', 'Chemistry Tutoring', 'Science Education', 'Board Exam Review', 'Lab Experiments'],
-    experience: '10 years',
-    hourlyRate: 550,
-    averageRating: 4.7,
-    totalRatings: 33,
-  },
-  {
-    name: 'Ate Camille Reyes',
-    email: 'camille@example.com',
-    bio: 'Music teacher — piano, guitar, voice lessons. Classical & contemporary. Kids & adults welcome!',
-    location: 'San Juan, Metro Manila',
-    isFreelancer: true,
-    skills: ['Piano Lessons', 'Guitar Lessons', 'Voice Training', 'Music Theory', 'Songwriting'],
-    experience: '7 years',
-    hourlyRate: 600,
-    averageRating: 5.0,
-    totalRatings: 28,
-  },
-  {
-    name: 'Coach Ricky Torres',
-    email: 'ricky@example.com',
-    bio: 'CSEE & CPALE reviewer. Accounting, auditing, business law. 80%+ passing rate sa mga tutees ko.',
-    location: 'Manila, Metro Manila',
-    isFreelancer: true,
-    skills: ['Accounting Tutoring', 'Auditing', 'Business Law', 'Board Exam Review', 'Financial Analysis'],
-    experience: '9 years',
-    hourlyRate: 700,
-    averageRating: 4.8,
-    totalRatings: 42,
-  },
-  {
-    name: 'Teacher Bea Cruz',
-    email: 'bea@example.com',
-    bio: 'Early childhood educator & reading tutor. Phonics, reading comprehension, homework help. K-3 specialist.',
-    location: 'Parañaque, Metro Manila',
-    isFreelancer: true,
-    skills: ['Reading Tutoring', 'Phonics', 'Early Childhood Education', 'Homework Help', 'Special Education'],
-    experience: '5 years',
-    hourlyRate: 350,
-    averageRating: 4.9,
-    totalRatings: 48,
-  },
-  {
-    name: 'Kuya Kevin Tan',
-    email: 'kevin@example.com',
-    bio: 'Japanese language tutor — N5 to N2 level. Conversational Japanese, JLPT prep. Lived in Japan for 3 years.',
-    location: 'Makati, Metro Manila',
-    isFreelancer: true,
-    skills: ['Japanese Language', 'JLPT Preparation', 'Translation', 'Conversational Japanese', 'Business Japanese'],
-    experience: '4 years',
-    hourlyRate: 600,
-    averageRating: 4.7,
-    totalRatings: 20,
-  },
-  {
-    name: 'Ms. Diana Flores',
-    email: 'diana@example.com',
-    bio: 'Art & design teacher. Drawing, painting, digital illustration. Portfolio prep for college applicants.',
-    location: 'Marikina, Metro Manila',
-    isFreelancer: true,
-    skills: ['Drawing Lessons', 'Painting', 'Digital Illustration', 'Art Teaching', 'Portfolio Preparation'],
-    experience: '6 years',
-    hourlyRate: 500,
-    averageRating: 4.8,
-    totalRatings: 22,
-  },
-  {
-    name: 'Coach Enzo Navarro',
-    email: 'enzo@example.com',
-    bio: 'Fitness trainer & swimming instructor. Weight training, HIIT, swim lessons for all ages. Certified by PSSF.',
-    location: 'Taguig, Metro Manila',
-    isFreelancer: true,
-    skills: ['Personal Training', 'Swimming Lessons', 'HIIT', 'Weight Training', 'Sports Coaching'],
-    experience: '8 years',
-    hourlyRate: 800,
-    averageRating: 4.9,
-    totalRatings: 37,
-  },
-  {
-    name: 'Sir Joel Ramirez',
-    email: 'joel@example.com',
-    bio: 'Driving instructor — manual & automatic. LTO exam prep, defensive driving. Very patient with beginners.',
-    location: 'Caloocan, Metro Manila',
-    isFreelancer: true,
-    skills: ['Driving Lessons', 'LTO Exam Prep', 'Defensive Driving', 'Manual Transmission', 'Automatic Transmission'],
-    experience: '10 years',
-    hourlyRate: 400,
-    averageRating: 4.6,
-    totalRatings: 58,
-  },
+// ─── Sample Videos (free public MP4s) ────────────────────────────────────────
 
-  // ── TECH (10) ──
-  {
-    name: 'Maria Santos',
-    email: 'maria@example.com',
-    bio: 'Full-stack developer — React, Node.js, MongoDB. 5 years building web apps for startups & enterprises.',
-    location: 'Makati, Metro Manila',
-    isFreelancer: true,
-    skills: ['React', 'Node.js', 'MongoDB', 'TypeScript', 'Tailwind CSS'],
-    experience: '5 years',
-    hourlyRate: 1200,
-    averageRating: 4.8,
-    totalRatings: 12,
-  },
-  {
-    name: 'Carlos Garcia',
-    email: 'carlos@example.com',
-    bio: 'DevOps engineer & cloud architect. AWS certified. CI/CD pipelines, containerization, infrastructure as code.',
-    location: 'Taguig, Metro Manila',
-    isFreelancer: true,
-    skills: ['AWS', 'Docker', 'Kubernetes', 'CI/CD', 'Terraform', 'Linux'],
-    experience: '7 years',
-    hourlyRate: 1500,
-    averageRating: 4.7,
-    totalRatings: 10,
-  },
-  {
-    name: 'Ana Reyes',
-    email: 'ana@example.com',
-    bio: 'Mobile developer — React Native & Flutter. Published 10+ apps on Play Store & App Store.',
-    location: 'Manila, Metro Manila',
-    isFreelancer: true,
-    skills: ['React Native', 'Flutter', 'Dart', 'JavaScript', 'Firebase'],
-    experience: '4 years',
-    hourlyRate: 1100,
-    averageRating: 4.9,
-    totalRatings: 15,
-  },
-  {
-    name: 'Juan dela Cruz',
-    email: 'juan@example.com',
-    bio: 'UI/UX designer — Figma, Adobe XD. User research, wireframing, design systems. Nagawa na ng platform UI for 3 startups.',
-    location: 'Quezon City, Metro Manila',
-    isFreelancer: true,
-    skills: ['Figma', 'Adobe XD', 'UI Design', 'UX Research', 'Prototyping', 'Design Systems'],
-    experience: '3 years',
-    hourlyRate: 900,
-    averageRating: 4.5,
-    totalRatings: 8,
-  },
-  {
-    name: 'Trisha Mae Villanueva',
-    email: 'trisha@example.com',
-    bio: 'Data analyst & Python developer. Power BI, SQL, machine learning. Helped companies make data-driven decisions.',
-    location: 'Pasig, Metro Manila',
-    isFreelancer: true,
-    skills: ['Python', 'SQL', 'Power BI', 'Data Analysis', 'Machine Learning', 'Pandas'],
-    experience: '4 years',
-    hourlyRate: 1000,
-    averageRating: 4.8,
-    totalRatings: 18,
-  },
-  {
-    name: 'Miguel Hernandez',
-    email: 'miguel@example.com',
-    bio: 'Cybersecurity consultant. Penetration testing, network security, SOC analysis. CEH & CompTIA Security+ certified.',
-    location: 'Mandaluyong, Metro Manila',
-    isFreelancer: true,
-    skills: ['Cybersecurity', 'Penetration Testing', 'Network Security', 'Security Auditing', 'Ethical Hacking'],
-    experience: '6 years',
-    hourlyRate: 1800,
-    averageRating: 4.9,
-    totalRatings: 14,
-  },
-  {
-    name: 'Ria Concepcion',
-    email: 'ria@example.com',
-    bio: 'Graphic designer & video editor. Branding, social media content, motion graphics. Adobe Creative Suite expert.',
-    location: 'Makati, Metro Manila',
-    isFreelancer: true,
-    skills: ['Graphic Design', 'Video Editing', 'Motion Graphics', 'Branding', 'Adobe Premiere', 'After Effects'],
-    experience: '5 years',
-    hourlyRate: 800,
-    averageRating: 4.7,
-    totalRatings: 25,
-  },
-  {
-    name: 'Jericho Lim',
-    email: 'jericho@example.com',
-    bio: 'WordPress & Shopify developer. E-commerce specialist — 50+ online stores built. SEO & speed optimization.',
-    location: 'Pasay, Metro Manila',
-    isFreelancer: true,
-    skills: ['WordPress', 'Shopify', 'SEO', 'E-commerce', 'PHP', 'WooCommerce'],
-    experience: '6 years',
-    hourlyRate: 700,
-    averageRating: 4.6,
-    totalRatings: 35,
-  },
-  {
-    name: 'Nikki Tan',
-    email: 'nikki@example.com',
-    bio: 'Social media manager & content creator. Strategy, scheduling, analytics. Handled brands with 100K+ followers.',
-    location: 'San Juan, Metro Manila',
-    isFreelancer: true,
-    skills: ['Social Media Management', 'Content Creation', 'Copywriting', 'Analytics', 'Community Management'],
-    experience: '4 years',
-    hourlyRate: 600,
-    averageRating: 4.8,
-    totalRatings: 30,
-  },
-  {
-    name: 'Paolo Mendoza',
-    email: 'paolo@example.com',
-    bio: 'Looking for talented developers and workers for my projects. Always hiring Filipino talent!',
-    location: 'Pasig, Metro Manila',
-    isFreelancer: false,
-    skills: [],
-    experience: '0',
-    hourlyRate: 0,
-    averageRating: 0,
-    totalRatings: 0,
-  },
-];
-
-// ─── Sample Videos (free public MP4s for testing) ───────────────────────────
 const SAMPLE_VIDEOS = [
   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
@@ -451,293 +99,631 @@ const SAMPLE_VIDEOS = [
   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
 ];
 
-// ─── Sample Reels ─────────────────────────────────────────────────────────────
-const reelsData = [
+// ─── KYC placeholder images ─────────────────────────────────────────────────
+
+const GOV_ID_IMG = 'https://res.cloudinary.com/demo/image/upload/sample.jpg';
+const SELFIE_IMG = 'https://res.cloudinary.com/demo/image/upload/sample.jpg';
+
+// ─── 40 Filipino Workers ─────────────────────────────────────────────────────
+
+const users = [
+  // ══════════════════════════════════════════════════════════════════════════
+  // TECH (5)
+  // ══════════════════════════════════════════════════════════════════════════
   {
-    description: 'Panel installation done! Complete rewiring ng 2-storey house sa QC. Safe at up to code. 🔌 #electrician #panelinstallation',
-    tags: ['electrical', 'construction', 'panelinstallation'],
-    detectedSkills: ['Electrical Wiring', 'Panel Installation'],
-    views: 1240,
-    duration: 45,
-    userEmail: 'erning@example.com',
+    name: 'Maria Santos',
+    email: 'maria.santos@example.com',
+    bio: 'Full-stack developer — React, Node.js, MongoDB. 5 years building web apps for startups & enterprises.',
+    location: 'Makati, Metro Manila',
+    skills: ['React', 'Node.js', 'MongoDB', 'TypeScript', 'Tailwind CSS'],
+    experience: '5 years',
+    hourlyRate: 1200,
+    averageRating: 4.8,
+    totalRatings: 12,
+    profilePhoto: face('women', 1),
   },
   {
-    description: 'Custom sala set mula sa solid narra wood! Gawa ko mula simula hanggang katapusan. 🪵 DM for orders!',
-    tags: ['carpentry', 'furniture', 'woodwork'],
-    detectedSkills: ['Carpentry', 'Furniture Making'],
-    views: 3200,
-    duration: 60,
-    userEmail: 'boyet@example.com',
+    name: 'Carlos Garcia',
+    email: 'carlos.garcia@example.com',
+    bio: 'DevOps engineer & cloud architect. AWS certified. CI/CD pipelines, containerization, infrastructure as code.',
+    location: 'Taguig, Metro Manila',
+    skills: ['AWS', 'Docker', 'Kubernetes', 'CI/CD', 'Terraform'],
+    experience: '7 years',
+    hourlyRate: 1500,
+    averageRating: 4.7,
+    totalRatings: 10,
+    profilePhoto: face('men', 1),
   },
   {
-    description: 'Before & after ng bathroom renovation — bagong tiles, toilet, at shower system. 🚿 #plumbing #renovation',
-    tags: ['plumbing', 'renovation', 'bathroom'],
-    detectedSkills: ['Plumbing', 'Tiling'],
-    views: 5800,
-    duration: 72,
-    userEmail: 'domeng@example.com',
+    name: 'Ana Reyes',
+    email: 'ana.reyes@example.com',
+    bio: 'Mobile developer — React Native & Flutter. Published 10+ apps on Play Store & App Store.',
+    location: 'Manila, Metro Manila',
+    skills: ['React Native', 'Flutter', 'Dart', 'JavaScript', 'Firebase'],
+    experience: '4 years',
+    hourlyRate: 1100,
+    averageRating: 4.9,
+    totalRatings: 15,
+    profilePhoto: face('women', 2),
   },
   {
-    description: 'React + Node.js full-stack app build in 60 seconds ⚡ From setup to deployment. #webdev #fullstack',
-    tags: ['webdev', 'react', 'nodejs'],
-    detectedSkills: ['React', 'Node.js', 'MongoDB'],
-    views: 8900,
-    duration: 58,
-    userEmail: 'maria@example.com',
+    name: 'Engr. Juan Dela Cruz',
+    email: 'juan.delacruz@example.com',
+    bio: 'UI/UX designer & front-end engineer. Figma, Adobe XD, user research, wireframing, design systems.',
+    location: 'Quezon City, Metro Manila',
+    skills: ['Figma', 'Adobe XD', 'UI Design', 'UX Research', 'Prototyping'],
+    experience: '3 years',
+    hourlyRate: 900,
+    averageRating: 4.5,
+    totalRatings: 8,
+    profilePhoto: face('men', 2),
   },
   {
-    description: 'UI/UX design process — wireframe to high-fidelity prototype in Figma. Watch me design a mobile app! 🎨',
-    tags: ['uidesign', 'figma', 'ux'],
-    detectedSkills: ['Figma', 'UI Design', 'Prototyping'],
-    views: 12000,
-    duration: 90,
-    userEmail: 'juan@example.com',
+    name: 'Trisha Villanueva',
+    email: 'trisha.villanueva@example.com',
+    bio: 'Data analyst & Python developer. Power BI, SQL, machine learning. Helping companies make data-driven decisions.',
+    location: 'Pasig, Metro Manila',
+    skills: ['Python', 'SQL', 'Power BI', 'Data Analysis', 'Machine Learning'],
+    experience: '4 years',
+    hourlyRate: 1000,
+    averageRating: 4.8,
+    totalRatings: 18,
+    profilePhoto: face('women', 3),
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // CARPENTRY (5)
+  // ══════════════════════════════════════════════════════════════════════════
+  {
+    name: 'Roberto Ramos',
+    email: 'roberto.ramos@example.com',
+    bio: 'Master carpenter — custom cabinets, wooden frames, general woodwork. 15 years of quality craftsmanship.',
+    location: 'Marikina, Metro Manila',
+    skills: ['Carpentry', 'Furniture Making', 'Cabinet Installation', 'Woodwork', 'Renovation'],
+    experience: '15 years',
+    hourlyRate: 400,
+    averageRating: 5.0,
+    totalRatings: 32,
+    profilePhoto: face('men', 3),
   },
   {
-    description: 'Piano recital piece by my 8-year-old student — Fur Elise, complete! 🎹 So proud of her progress!',
-    tags: ['piano', 'teaching', 'music'],
-    detectedSkills: ['Piano Lessons', 'Music Theory'],
-    views: 4500,
-    duration: 120,
-    userEmail: 'camille@example.com',
+    name: 'Leonardo Bautista',
+    email: 'leonardo.bautista@example.com',
+    bio: 'Furniture craftsman specializing in solid wood tables, shelves, and custom storage solutions.',
+    location: 'Valenzuela, Metro Manila',
+    skills: ['Furniture Making', 'Wood Finishing', 'Carpentry', 'Custom Shelving', 'Restoration'],
+    experience: '12 years',
+    hourlyRate: 450,
+    averageRating: 4.7,
+    totalRatings: 28,
+    profilePhoto: face('men', 4),
   },
   {
-    description: 'Aircon deep cleaning — ito yung dumi na lumalabas! 😱 Regular cleaning = mas malamig at mas matipid sa kuryente. #aircon',
-    tags: ['aircon', 'cleaning', 'maintenance'],
-    detectedSkills: ['Aircon Cleaning', 'HVAC'],
-    views: 22000,
-    duration: 55,
-    userEmail: 'lito@example.com',
+    name: 'Ricardo Flores',
+    email: 'ricardo.flores@example.com',
+    bio: 'Interior fit-out carpenter — residential and commercial. Ceiling, partition walls, built-in closets.',
+    location: 'Parañaque, Metro Manila',
+    skills: ['Carpentry', 'Interior Fit-out', 'Ceiling Installation', 'Partition Walls', 'Built-in Closets'],
+    experience: '10 years',
+    hourlyRate: 380,
+    averageRating: 4.6,
+    totalRatings: 22,
+    profilePhoto: face('men', 5),
   },
   {
-    description: 'Steel gate fabrication from scratch — design, cutting, welding, painting. 🔧 #welding #steelgate',
-    tags: ['welding', 'fabrication', 'gate'],
-    detectedSkills: ['Welding', 'Steel Fabrication', 'Gate Making'],
-    views: 7600,
-    duration: 80,
-    userEmail: 'jun@example.com',
+    name: 'Fernando Cruz',
+    email: 'fernando.cruz@example.com',
+    bio: 'Door and window specialist — installation, repair, and custom woodwork. Solid and engineered wood.',
+    location: 'Las Piñas, Metro Manila',
+    skills: ['Door Installation', 'Window Installation', 'Carpentry', 'Wood Repair', 'Custom Woodwork'],
+    experience: '8 years',
+    hourlyRate: 350,
+    averageRating: 4.8,
+    totalRatings: 19,
+    profilePhoto: face('men', 6),
   },
   {
-    description: 'Data visualization dashboard built in Python & Power BI — sales insights in minutes! 📊 #datascience',
-    tags: ['python', 'powerbi', 'datascience'],
-    detectedSkills: ['Python', 'Power BI', 'Data Analysis'],
-    views: 6100,
-    duration: 65,
-    userEmail: 'trisha@example.com',
+    name: 'Eduardo Navarro',
+    email: 'eduardo.navarro@example.com',
+    bio: 'Roofing and wooden truss specialist. Yero installation, truss fabrication, wood framing for new builds.',
+    location: 'Antipolo, Rizal',
+    skills: ['Roofing', 'Truss Fabrication', 'Carpentry', 'Wood Framing', 'Yero Installation'],
+    experience: '14 years',
+    hourlyRate: 420,
+    averageRating: 4.9,
+    totalRatings: 26,
+    profilePhoto: face('men', 7),
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // EDUCATION (5)
+  // ══════════════════════════════════════════════════════════════════════════
+  {
+    name: 'Jessica Mendoza',
+    email: 'jessica.mendoza@example.com',
+    bio: 'Licensed math tutor — Grade 1 to College Algebra. Patient and engaging teaching style. Online & F2F.',
+    location: 'Makati, Metro Manila',
+    skills: ['Math Tutoring', 'Algebra', 'Calculus', 'Statistics', 'Online Teaching'],
+    experience: '8 years',
+    hourlyRate: 500,
+    averageRating: 4.9,
+    totalRatings: 55,
+    profilePhoto: face('women', 4),
   },
   {
-    description: 'Social media content strategy — how I grew a brand from 2K to 100K followers in 6 months! 🚀 #socialmedia',
-    tags: ['socialmedia', 'contentcreation', 'marketing'],
-    detectedSkills: ['Social Media Management', 'Content Creation', 'Analytics'],
-    views: 18500,
-    duration: 95,
-    userEmail: 'nikki@example.com',
+    name: 'Marco Evangelista',
+    email: 'marco.evangelista@example.com',
+    bio: 'English & Filipino language tutor. IELTS prep, business English, creative writing. LET passer.',
+    location: 'Quezon City, Metro Manila',
+    skills: ['English Tutoring', 'IELTS Preparation', 'Filipino Language', 'Creative Writing', 'Business English'],
+    experience: '6 years',
+    hourlyRate: 450,
+    averageRating: 4.8,
+    totalRatings: 40,
+    profilePhoto: face('men', 8),
   },
   {
-    description: 'Rooftop waterproofing — never tumulo ulit! Step-by-step process para walang leaks. 🏠 #roofing #waterproofing',
-    tags: ['roofing', 'waterproofing', 'construction'],
-    detectedSkills: ['Roofing', 'Waterproofing', 'Leak Repair'],
-    views: 9300,
-    duration: 70,
-    userEmail: 'danny@example.com',
+    name: 'Patricia Lim',
+    email: 'patricia.lim@example.com',
+    bio: 'Science tutor specializing in Physics & Chemistry. Board exam reviewer. Makes science fun & easy.',
+    location: 'Pasig, Metro Manila',
+    skills: ['Physics Tutoring', 'Chemistry Tutoring', 'Science Education', 'Board Exam Review', 'Lab Experiments'],
+    experience: '10 years',
+    hourlyRate: 550,
+    averageRating: 4.7,
+    totalRatings: 33,
+    profilePhoto: face('women', 5),
   },
   {
-    description: 'AWS cloud architecture walkthrough — how I set up a scalable infra for a startup on minimal budget ☁️ #devops #aws',
-    tags: ['aws', 'devops', 'cloud'],
-    detectedSkills: ['AWS', 'Docker', 'CI/CD'],
-    views: 14200,
-    duration: 110,
-    userEmail: 'carlos@example.com',
+    name: 'Beatrice Cruz',
+    email: 'beatrice.cruz@example.com',
+    bio: 'Early childhood educator & reading tutor. Phonics, reading comprehension, homework help. K-3 specialist.',
+    location: 'Parañaque, Metro Manila',
+    skills: ['Reading Tutoring', 'Phonics', 'Early Childhood Education', 'Homework Help', 'Special Education'],
+    experience: '5 years',
+    hourlyRate: 350,
+    averageRating: 4.9,
+    totalRatings: 48,
+    profilePhoto: face('women', 6),
+  },
+  {
+    name: 'Diana Santos',
+    email: 'diana.santos@example.com',
+    bio: 'Art & design teacher. Drawing, painting, digital illustration. Portfolio prep for college applicants.',
+    location: 'Marikina, Metro Manila',
+    skills: ['Drawing Lessons', 'Painting', 'Digital Illustration', 'Art Teaching', 'Portfolio Preparation'],
+    experience: '6 years',
+    hourlyRate: 500,
+    averageRating: 4.8,
+    totalRatings: 22,
+    profilePhoto: face('women', 7),
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // ELECTRICIAN (5)
+  // ══════════════════════════════════════════════════════════════════════════
+  {
+    name: 'Ernesto Dela Cruz',
+    email: 'ernesto.delacruz@example.com',
+    bio: 'Master electrician with 20+ years. Wiring, panel installation, troubleshooting. Buong Metro Manila.',
+    location: 'Quezon City, Metro Manila',
+    skills: ['Electrical Wiring', 'Panel Installation', 'Troubleshooting', 'Lighting', 'CCTV Installation'],
+    experience: '20 years',
+    hourlyRate: 350,
+    averageRating: 4.8,
+    totalRatings: 45,
+    profilePhoto: face('men', 9),
+  },
+  {
+    name: 'Antonio Soriano',
+    email: 'antonio.soriano@example.com',
+    bio: 'Licensed electrician — residential & commercial. Solar panel installation, smart home wiring, generator setup.',
+    location: 'Mandaluyong, Metro Manila',
+    skills: ['Electrical Wiring', 'Solar Panel Installation', 'Smart Home Wiring', 'Generator Setup', 'Troubleshooting'],
+    experience: '15 years',
+    hourlyRate: 400,
+    averageRating: 4.7,
+    totalRatings: 38,
+    profilePhoto: face('men', 10),
+  },
+  {
+    name: 'Danilo Aquino',
+    email: 'danilo.aquino@example.com',
+    bio: 'Industrial electrician — motor controls, PLC wiring, power distribution. Factory & warehouse specialist.',
+    location: 'Caloocan, Metro Manila',
+    skills: ['Industrial Wiring', 'Motor Controls', 'PLC Wiring', 'Power Distribution', 'Electrical Maintenance'],
+    experience: '18 years',
+    hourlyRate: 500,
+    averageRating: 4.6,
+    totalRatings: 20,
+    profilePhoto: face('men', 11),
+  },
+  {
+    name: 'Ramon Perez',
+    email: 'ramon.perez@example.com',
+    bio: 'Aircon electrician — installation, repair, cleaning. Window, split, cassette type. Freon recharging.',
+    location: 'Taguig, Metro Manila',
+    skills: ['Aircon Installation', 'Aircon Repair', 'Electrical Wiring', 'HVAC', 'Freon Recharging'],
+    experience: '10 years',
+    hourlyRate: 380,
+    averageRating: 4.8,
+    totalRatings: 42,
+    profilePhoto: face('men', 12),
+  },
+  {
+    name: 'Gabriel Reyes',
+    email: 'gabriel.reyes@example.com',
+    bio: 'Emergency electrician — 24/7 availability. Breaker trips, power outage diagnosis, short circuit repair.',
+    location: 'Pasay, Metro Manila',
+    skills: ['Emergency Electrical', 'Circuit Breaker Repair', 'Power Diagnosis', 'Short Circuit Repair', 'Lighting Installation'],
+    experience: '12 years',
+    hourlyRate: 450,
+    averageRating: 4.9,
+    totalRatings: 35,
+    profilePhoto: face('men', 13),
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // PLUMBER (5)
+  // ══════════════════════════════════════════════════════════════════════════
+  {
+    name: 'Domingo Bautista',
+    email: 'domingo.bautista@example.com',
+    bio: 'Licensed plumber — 25 years experience. Water line, drainage, septic tank, toilet repair.',
+    location: 'Caloocan, Metro Manila',
+    skills: ['Plumbing', 'Pipe Fitting', 'Drainage', 'Septic Tank', 'Water Heater Installation'],
+    experience: '25 years',
+    hourlyRate: 300,
+    averageRating: 4.6,
+    totalRatings: 28,
+    profilePhoto: face('men', 14),
+  },
+  {
+    name: 'Joel Hernandez',
+    email: 'joel.hernandez@example.com',
+    bio: 'Bathroom and kitchen plumber — fixture installation, leak repair, pipe replacement. Clean and reliable work.',
+    location: 'Muntinlupa, Metro Manila',
+    skills: ['Plumbing', 'Fixture Installation', 'Leak Repair', 'Pipe Replacement', 'Kitchen Plumbing'],
+    experience: '12 years',
+    hourlyRate: 350,
+    averageRating: 4.7,
+    totalRatings: 30,
+    profilePhoto: face('men', 15),
+  },
+  {
+    name: 'Rodel Garcia',
+    email: 'rodel.garcia@example.com',
+    bio: 'Water pump specialist — installation, repair, pressure tank setup. Deep well & jet pump systems.',
+    location: 'San Juan, Metro Manila',
+    skills: ['Water Pump Installation', 'Plumbing', 'Pressure Tank Setup', 'Deep Well Systems', 'Pump Repair'],
+    experience: '10 years',
+    hourlyRate: 380,
+    averageRating: 4.8,
+    totalRatings: 25,
+    profilePhoto: face('men', 16),
+  },
+  {
+    name: 'Nelson Torres',
+    email: 'nelson.torres@example.com',
+    bio: 'Sewer and drainage specialist — clogged drains, sewer line repair, drainage system installation.',
+    location: 'Pasig, Metro Manila',
+    skills: ['Drainage', 'Sewer Repair', 'Plumbing', 'Clog Removal', 'Pipe Installation'],
+    experience: '15 years',
+    hourlyRate: 320,
+    averageRating: 4.5,
+    totalRatings: 35,
+    profilePhoto: face('men', 17),
+  },
+  {
+    name: 'Engr. Benjamin Lim',
+    email: 'benjamin.lim@example.com',
+    bio: 'Commercial plumbing engineer — fire sprinkler systems, building water systems, code-compliant installations.',
+    location: 'Makati, Metro Manila',
+    skills: ['Commercial Plumbing', 'Fire Sprinkler', 'Building Water Systems', 'Plumbing Design', 'Code Compliance'],
+    experience: '20 years',
+    hourlyRate: 600,
+    averageRating: 4.9,
+    totalRatings: 18,
+    profilePhoto: face('men', 18),
+  },
+
+  // ══════════════════════════════════════════════════════════════════════════
+  // RANDOM SKILLS (15)
+  // ══════════════════════════════════════════════════════════════════════════
+  {
+    name: 'Nena Villanueva',
+    email: 'nena.villanueva@example.com',
+    bio: 'Professional house cleaner & deep cleaning specialist. Bahay, condo, office. Maasahan at matiyaga.',
+    location: 'Pasig, Metro Manila',
+    skills: ['House Cleaning', 'Deep Cleaning', 'Office Cleaning', 'Laundry', 'Organizing'],
+    experience: '10 years',
+    hourlyRate: 200,
+    averageRating: 4.9,
+    totalRatings: 60,
+    profilePhoto: face('women', 8),
+  },
+  {
+    name: 'Rodrigo Magno',
+    email: 'rodrigo.magno@example.com',
+    bio: 'Professional painter — residential & commercial. Interior, exterior, waterproofing. Clean finish guaranteed.',
+    location: 'Las Piñas, Metro Manila',
+    skills: ['Painting', 'Waterproofing', 'Epoxy Flooring', 'Wall Repair', 'Varnishing'],
+    experience: '12 years',
+    hourlyRate: 350,
+    averageRating: 4.7,
+    totalRatings: 38,
+    profilePhoto: face('men', 19),
+  },
+  {
+    name: 'Jun Perez',
+    email: 'jun.perez@example.com',
+    bio: 'Certified welder — steel gates, grills, railings, structural steel. Stick, MIG, TIG welding.',
+    location: 'Taguig, Metro Manila',
+    skills: ['Welding', 'Steel Fabrication', 'Gate Making', 'Grillwork', 'Railing Installation'],
+    experience: '14 years',
+    hourlyRate: 450,
+    averageRating: 4.8,
+    totalRatings: 30,
+    profilePhoto: face('men', 20),
+  },
+  {
+    name: 'Carding Aquino',
+    email: 'carding.aquino@example.com',
+    bio: 'Gardener & landscaper. Lawn maintenance, pruning, plant installation, garden design. Green thumb!',
+    location: 'Antipolo, Rizal',
+    skills: ['Landscaping', 'Gardening', 'Lawn Maintenance', 'Pruning', 'Plant Installation'],
+    experience: '12 years',
+    hourlyRate: 250,
+    averageRating: 4.9,
+    totalRatings: 35,
+    profilePhoto: face('men', 21),
+  },
+  {
+    name: 'Camille Reyes',
+    email: 'camille.reyes@example.com',
+    bio: 'Music teacher — piano, guitar, voice lessons. Classical & contemporary. Kids & adults welcome!',
+    location: 'San Juan, Metro Manila',
+    skills: ['Piano Lessons', 'Guitar Lessons', 'Voice Training', 'Music Theory', 'Songwriting'],
+    experience: '7 years',
+    hourlyRate: 600,
+    averageRating: 5.0,
+    totalRatings: 28,
+    profilePhoto: face('women', 9),
+  },
+  {
+    name: 'Miguel Torres',
+    email: 'miguel.torres@example.com',
+    bio: 'Cybersecurity consultant. Penetration testing, network security, SOC analysis. CEH certified.',
+    location: 'Mandaluyong, Metro Manila',
+    skills: ['Cybersecurity', 'Penetration Testing', 'Network Security', 'Security Auditing', 'Ethical Hacking'],
+    experience: '6 years',
+    hourlyRate: 1800,
+    averageRating: 4.9,
+    totalRatings: 14,
+    profilePhoto: face('men', 22),
+  },
+  {
+    name: 'Ria Concepcion',
+    email: 'ria.concepcion@example.com',
+    bio: 'Graphic designer & video editor. Branding, social media content, motion graphics. Adobe Suite expert.',
+    location: 'Makati, Metro Manila',
+    skills: ['Graphic Design', 'Video Editing', 'Motion Graphics', 'Branding', 'Adobe Premiere'],
+    experience: '5 years',
+    hourlyRate: 800,
+    averageRating: 4.7,
+    totalRatings: 25,
+    profilePhoto: face('women', 10),
+  },
+  {
+    name: 'Tony Soriano',
+    email: 'tony.soriano@example.com',
+    bio: 'Mason & construction worker. Foundation, CHB walls, tiling, concrete finishing. Own tools provided.',
+    location: 'Valenzuela, Metro Manila',
+    skills: ['Masonry', 'Tiling', 'Concrete Work', 'CHB Wall', 'Plastering'],
+    experience: '18 years',
+    hourlyRate: 380,
+    averageRating: 4.5,
+    totalRatings: 22,
+    profilePhoto: face('men', 23),
+  },
+  {
+    name: 'Lito Bernal',
+    email: 'lito.bernal@example.com',
+    bio: 'Aircon technician — cleaning, repair, installation. Window, split, cassette type. Freon recharging.',
+    location: 'Mandaluyong, Metro Manila',
+    skills: ['Aircon Cleaning', 'Aircon Repair', 'Aircon Installation', 'HVAC', 'Freon Recharging'],
+    experience: '8 years',
+    hourlyRate: 400,
+    averageRating: 4.6,
+    totalRatings: 50,
+    profilePhoto: face('men', 24),
+  },
+  {
+    name: 'Danny Santos',
+    email: 'danny.santos@example.com',
+    bio: 'Roofing specialist — yero replacement, gutter installation, waterproofing, leak repair.',
+    location: 'Muntinlupa, Metro Manila',
+    skills: ['Roofing', 'Gutter Installation', 'Waterproofing', 'Leak Repair', 'Metal Works'],
+    experience: '16 years',
+    hourlyRate: 400,
+    averageRating: 4.7,
+    totalRatings: 25,
+    profilePhoto: face('men', 25),
+  },
+  {
+    name: 'Kevin Tan',
+    email: 'kevin.tan@example.com',
+    bio: 'Japanese language tutor — N5 to N2 level. Conversational Japanese, JLPT prep. Lived in Japan 3 years.',
+    location: 'Makati, Metro Manila',
+    skills: ['Japanese Language', 'JLPT Preparation', 'Translation', 'Conversational Japanese', 'Business Japanese'],
+    experience: '4 years',
+    hourlyRate: 600,
+    averageRating: 4.7,
+    totalRatings: 20,
+    profilePhoto: face('men', 26),
+  },
+  {
+    name: 'Nikki Tan',
+    email: 'nikki.tan@example.com',
+    bio: 'Social media manager & content creator. Strategy, scheduling, analytics. 100K+ follower brands handled.',
+    location: 'San Juan, Metro Manila',
+    skills: ['Social Media Management', 'Content Creation', 'Copywriting', 'Analytics', 'Community Management'],
+    experience: '4 years',
+    hourlyRate: 600,
+    averageRating: 4.8,
+    totalRatings: 30,
+    profilePhoto: face('women', 11),
+  },
+  {
+    name: 'Jericho Lim',
+    email: 'jericho.lim@example.com',
+    bio: 'WordPress & Shopify developer. E-commerce specialist — 50+ online stores built. SEO optimization.',
+    location: 'Pasay, Metro Manila',
+    skills: ['WordPress', 'Shopify', 'SEO', 'E-commerce', 'PHP'],
+    experience: '6 years',
+    hourlyRate: 700,
+    averageRating: 4.6,
+    totalRatings: 35,
+    profilePhoto: face('men', 27),
+  },
+  {
+    name: 'Engr. Ricky Torres',
+    email: 'ricky.torres@example.com',
+    bio: 'Fitness trainer & swimming instructor. Weight training, HIIT, swim lessons. PSSF certified.',
+    location: 'Taguig, Metro Manila',
+    skills: ['Personal Training', 'Swimming Lessons', 'HIIT', 'Weight Training', 'Sports Coaching'],
+    experience: '8 years',
+    hourlyRate: 800,
+    averageRating: 4.9,
+    totalRatings: 37,
+    profilePhoto: face('men', 28),
+  },
+  {
+    name: 'Joel Ramirez',
+    email: 'joel.ramirez@example.com',
+    bio: 'Driving instructor — manual & automatic. LTO exam prep, defensive driving. Patient with beginners.',
+    location: 'Caloocan, Metro Manila',
+    skills: ['Driving Lessons', 'LTO Exam Prep', 'Defensive Driving', 'Manual Transmission', 'Automatic Transmission'],
+    experience: '10 years',
+    hourlyRate: 400,
+    averageRating: 4.6,
+    totalRatings: 58,
+    profilePhoto: face('men', 29),
   },
 ];
 
-// ─── Sample Posts (30 work-related posts with images) ─────────────────────────
+// ─── Posts (at least 1 per worker — 40 posts) ────────────────────────────────
 
 const posts = [
-  {
-    content: 'Just finished rewiring a 3-storey commercial building in QC! 🔌 Lahat ng outlet at panel board — clean, safe, at code-compliant. 20+ years na ako sa electrical work, quality at safety lagi ang priority ko. Available pa rin for residential jobs!',
-    tags: ['electrical', 'construction', 'panelinstallation'],
-    imageUrl: 'https://picsum.photos/seed/electrical-panel/800/600',
-    userEmail: 'erning@example.com',
-  },
-  {
-    content: 'Custom sala set gawa sa solid narra — mula raw lumber hanggang finished product! 🪵 Hand-finished, tatagal ng dekada. Open for orders across Metro Manila. DM mo ko para sa quotation.',
-    tags: ['carpentry', 'furniture', 'woodwork'],
-    imageUrl: 'https://picsum.photos/seed/woodwork-sala/800/600',
-    userEmail: 'boyet@example.com',
-  },
-  {
-    content: 'Before & after ng bathroom rehab sa Pasig — bagong tiles, bowl, shower system, at complete pipework. 🚿 Masayang trabaho at masaya ang client! Licensed plumber, 25 years experience.',
-    tags: ['plumbing', 'renovation', 'bathroom'],
-    imageUrl: 'https://picsum.photos/seed/bathroom-reno/800/600',
-    userEmail: 'domeng@example.com',
-  },
-  {
-    content: 'Deep cleaning transformation para sa 2-bedroom condo sa Pasig! 🧹 Bago at pagkatapos — grout scrubbing, appliance degreasing, carpet shampooing. Book na for your home or office!',
-    tags: ['cleaning', 'deepclean', 'condo'],
-    imageUrl: 'https://picsum.photos/seed/cleaning-condo/800/600',
-    userEmail: 'nena@example.com',
-  },
-  {
-    content: 'Fresh exterior paint job sa 2-storey house sa Las Piñas! 🎨 Weathershield paint, clean lines, walang drip. Interior work din available. Libre estimate — message me para sa schedule.',
-    tags: ['painting', 'exteriorpaint', 'renovation'],
-    imageUrl: 'https://picsum.photos/seed/house-painting/800/600',
-    userEmail: 'rod@example.com',
-  },
-  {
-    content: 'CHB wall at concrete flooring ng bodega — done in 3 days! 🧱 Reinforced footing, plastered at painted. 18 years ako sa masonry work. Kahit malaki o maliit na project, kaya ko!',
-    tags: ['masonry', 'construction', 'concrete'],
-    imageUrl: 'https://picsum.photos/seed/masonry-wall/800/600',
-    userEmail: 'tony@example.com',
-  },
-  {
-    content: 'Steel security gate fabricated and installed — designed by the client, built by me! 🔩 MIG welded, primered, at powder-coated for rust resistance. Taguig area, same-week delivery available.',
-    tags: ['welding', 'steelgate', 'fabrication'],
-    imageUrl: 'https://picsum.photos/seed/steel-gate/800/600',
-    userEmail: 'jun@example.com',
-  },
-  {
-    content: 'Aircon deep cleaning result — shocking kung gaano karumi ang lumalabas! 😱 Hindi lang cosmetic — nakakaapekto sa cooling efficiency at kuryente. Book regular clean every 3 months. Covered ang Metro Manila!',
-    tags: ['aircon', 'deepclean', 'hvac'],
-    imageUrl: 'https://picsum.photos/seed/aircon-clean/800/600',
-    userEmail: 'lito@example.com',
-  },
-  {
-    content: 'Rooftop waterproofing completed sa unit sa Muntinlupa — zero leaks guaranteed! ☔ Applied 3-layer elastomeric coating with fiber mesh. Before & after photos below. 5-year workmanship warranty.',
-    tags: ['roofing', 'waterproofing', 'construction'],
-    imageUrl: 'https://picsum.photos/seed/roof-waterproofing/800/600',
-    userEmail: 'danny@example.com',
-  },
-  {
-    content: 'Garden makeover para sa subdivision home sa Antipolo! 🌿 Nagdagdag ng ornamental plants, lawn leveling, at stone pathway. Ang dumi ng yard bago, ang ganda na ngayon. Available across Rizal & East Metro Manila.',
-    tags: ['landscaping', 'gardening', 'renovation'],
-    imageUrl: 'https://picsum.photos/seed/garden-landscape/800/600',
-    userEmail: 'carding@example.com',
-  },
-  {
-    content: 'Student passed the UP Diliman entrance exam with a score of 98/100 in Math! 🎉 3 months of intensive review — personalized approach, no one-size-fits-all. Slots available for incoming Grade 12 students.',
-    tags: ['mathtutoring', 'upcat', 'education'],
-    imageUrl: 'https://picsum.photos/seed/math-tutoring/800/600',
-    userEmail: 'jessa@example.com',
-  },
-  {
-    content: 'My IELTS student scored Band 8.0 overall — she needed 7.5 for her UK visa application! 🇬🇧 Customized mock tests, grammar drilling, and speaking practice. IELTS & OET preparation available online.',
-    tags: ['ielts', 'english', 'tutoring'],
-    imageUrl: 'https://picsum.photos/seed/ielts-study/800/600',
-    userEmail: 'mark@example.com',
-  },
-  {
-    content: 'Board exam results are out — 4 out of 5 ng reviewees ko pumasa sa LET Science! 🧪 Full coverage ng Gen Science, Physics, Chemistry, and Biology. Enrollment open for the next batch.',
-    tags: ['letreview', 'sciencetutoring', 'education'],
-    imageUrl: 'https://picsum.photos/seed/science-lab/800/600',
-    userEmail: 'patricia@example.com',
-  },
-  {
-    content: 'My 9-year-old student just performed Moonlight Sonata at their school recital! 🎹 2 years of consistent lessons — from basic finger exercises to Beethoven. Piano lessons for kids & adults, weekends in San Juan.',
-    tags: ['piano', 'musicteacher', 'kidslessons'],
-    imageUrl: 'https://picsum.photos/seed/piano-lessons/800/600',
-    userEmail: 'camille@example.com',
-  },
-  {
-    content: 'Batch 2025 CPALE review results — 7 out of 8 ng group ko pumasa! 📊 Accounting, Auditing, Tax, and Business Law covered. New batch starts next month. Limited slots — message now to reserve.',
-    tags: ['cpale', 'cpa', 'accounting', 'boardreview'],
-    imageUrl: 'https://picsum.photos/seed/accounting-review/800/600',
-    userEmail: 'ricky@example.com',
-  },
-  {
-    content: 'Phonics reading breakthrough — my Grade 1 student went from non-reader to reading full sentences in 8 weeks! 📚 Customized reading plan using multi-sensory techniques. Home visit sessions in Parañaque & Las Piñas.',
-    tags: ['phonics', 'readingtutoring', 'earlyeducation'],
-    imageUrl: 'https://picsum.photos/seed/reading-kids/800/600',
-    userEmail: 'bea@example.com',
-  },
-  {
-    content: 'JLPT N3 student passed with 95%! 🇯🇵 Intensive 6-month program covering kanji, grammar, listening, and reading comprehension. Currently accepting students for N5 and N4 levels. Video call sessions available.',
-    tags: ['japanese', 'jlpt', 'languagetutoring'],
-    imageUrl: 'https://picsum.photos/seed/japanese-study/800/600',
-    userEmail: 'kevin@example.com',
-  },
-  {
-    content: 'Portfolio prep results — 3 out of 4 ng students ko na-accept sa their top choice architecture schools! 🖼️ We worked on figure drawing, perspective, and digital rendering using Procreate and Illustrator.',
-    tags: ['artteaching', 'portfolio', 'drawing'],
-    imageUrl: 'https://picsum.photos/seed/art-portfolio/800/600',
-    userEmail: 'diana@example.com',
-  },
-  {
-    content: 'Client transformation after 12 weeks of personalized training — down 8kg, body fat from 28% to 19%! 💪 Strength + cardio + nutrition plan combined. Online and face-to-face programs available in BGC area.',
-    tags: ['personaltraining', 'fitness', 'weightloss'],
-    imageUrl: 'https://picsum.photos/seed/fitness-training/800/600',
-    userEmail: 'enzo@example.com',
-  },
-  {
-    content: 'Student passed the LTO written exam on the FIRST try! 🚗 5-session program covering traffic signs, road rules, and defensive driving theory. Practical driving lessons available on manual and automatic.',
-    tags: ['drivinginstructor', 'lto', 'driving'],
-    imageUrl: 'https://picsum.photos/seed/driving-lesson/800/600',
-    userEmail: 'joel@example.com',
-  },
-  {
-    content: 'Just shipped v2.0 of an e-commerce platform for a local brand — React + Node.js + MongoDB stack! 🚀 Features: real-time inventory, COD tracking, and admin analytics dashboard. Open for freelance web dev projects.',
-    tags: ['webdev', 'react', 'nodejs', 'ecommerce'],
-    imageUrl: 'https://picsum.photos/seed/web-development/800/600',
-    userEmail: 'maria@example.com',
-  },
-  {
-    content: 'Migrated a startup from a single VPS to a fully containerized AWS ECS setup — zero downtime, 60% cost reduction! ☁️ Terraform + Docker + GitHub Actions CI/CD pipeline. Available for cloud architecture consultations.',
-    tags: ['aws', 'devops', 'docker', 'cicd'],
-    imageUrl: 'https://picsum.photos/seed/cloud-devops/800/600',
-    userEmail: 'carlos@example.com',
-  },
-  {
-    content: 'Launched a cross-platform delivery app on both App Store and Google Play — built in React Native! 📱 Real-time tracking, push notifications, and driver dashboard included. Taking on new mobile dev projects.',
-    tags: ['reactnative', 'mobiledev', 'appstore'],
-    imageUrl: 'https://picsum.photos/seed/mobile-app/800/600',
-    userEmail: 'ana@example.com',
-  },
-  {
-    content: 'Complete UI redesign for a fintech startup — from wireframes to dev-ready Figma components in 3 weeks! 🎨 Improved task completion rate by 40% in user testing. Available for design system and UX audit projects.',
-    tags: ['uidesign', 'figma', 'uxdesign', 'fintech'],
-    imageUrl: 'https://picsum.photos/seed/ui-design/800/600',
-    userEmail: 'juan@example.com',
-  },
-  {
-    content: 'Built a real-time sales intelligence dashboard in Power BI connected to 5 data sources! 📊 Automated ETL pipeline in Python, refreshes hourly. Helped the client cut reporting time from 2 days to 10 minutes.',
-    tags: ['powerbi', 'python', 'dataanalytics', 'datascience'],
-    imageUrl: 'https://picsum.photos/seed/data-dashboard/800/600',
-    userEmail: 'trisha@example.com',
-  },
-  {
-    content: 'Completed a penetration test for an MSME — found 3 critical vulnerabilities before they could be exploited! 🔐 SQL injection, exposed admin panel, weak session tokens — all patched and verified. VAPT reports available.',
-    tags: ['cybersecurity', 'pentest', 'infosec'],
-    imageUrl: 'https://picsum.photos/seed/cybersecurity/800/600',
-    userEmail: 'miguel@example.com',
-  },
-  {
-    content: 'Brand identity package delivered for a new food startup — logo, color palette, packaging mockups, and social media templates! 🎨 All in Adobe Illustrator and Photoshop. Taking new branding and video editing clients.',
-    tags: ['graphicdesign', 'branding', 'logo'],
-    imageUrl: 'https://picsum.photos/seed/brand-design/800/600',
-    userEmail: 'ria@example.com',
-  },
-  {
-    content: 'New Shopify store launched for a local clothing brand — custom theme, upsell funnels, and abandoned cart emails all set up! 🛒 Speed score: 94/100. First week revenue hit ₱180K. Open for e-commerce projects.',
-    tags: ['shopify', 'ecommerce', 'webdev'],
-    imageUrl: 'https://picsum.photos/seed/shopify-store/800/600',
-    userEmail: 'jericho@example.com',
-  },
-  {
-    content: 'Grew a local restaurant brand from 3K to 85K Instagram followers in 5 months! 🍽️ Content calendar, daily stories, collabs with micro-influencers, and paid ad optimization. Accepting new social media management retainers.',
-    tags: ['socialmedia', 'instagram', 'contentcreation'],
-    imageUrl: 'https://picsum.photos/seed/social-media/800/600',
-    userEmail: 'nikki@example.com',
-  },
-  {
-    content: 'Completed a full home installation: 30 LED downlights, 3 circuit breakers, and a smart switch system wired throughout a brand new house in Antipolo. 💡 Swipe to see the panel box work. Clean wiring is safe wiring!',
-    tags: ['electrical', 'smartswitch', 'newhome'],
-    imageUrl: 'https://picsum.photos/seed/electrical-home/800/600',
-    userEmail: 'erning@example.com',
-  },
+  // TECH (5)
+  { content: 'Just shipped v2.0 of an e-commerce platform for a local brand — React + Node.js + MongoDB stack! 🚀 Real-time inventory, COD tracking, and admin analytics dashboard. Open for freelance web dev projects.', tags: ['webdev', 'react', 'nodejs'], imageUrl: 'https://picsum.photos/seed/tech1/800/600', userIndex: 0 },
+  { content: 'Migrated a startup from a single VPS to a fully containerized AWS ECS setup — zero downtime, 60% cost reduction! ☁️ Terraform + Docker + GitHub Actions CI/CD pipeline.', tags: ['aws', 'devops', 'docker'], imageUrl: 'https://picsum.photos/seed/tech2/800/600', userIndex: 1 },
+  { content: 'Launched a cross-platform delivery app on both App Store and Google Play — built in React Native! 📱 Real-time tracking, push notifications, and driver dashboard.', tags: ['reactnative', 'mobiledev'], imageUrl: 'https://picsum.photos/seed/tech3/800/600', userIndex: 2 },
+  { content: 'Complete UI redesign for a fintech startup — from wireframes to dev-ready Figma components in 3 weeks! 🎨 Improved task completion rate by 40% in user testing.', tags: ['uidesign', 'figma', 'ux'], imageUrl: 'https://picsum.photos/seed/tech4/800/600', userIndex: 3 },
+  { content: 'Built a real-time sales intelligence dashboard in Power BI connected to 5 data sources! 📊 Automated ETL pipeline in Python, refreshes hourly.', tags: ['powerbi', 'python', 'data'], imageUrl: 'https://picsum.photos/seed/tech5/800/600', userIndex: 4 },
+
+  // CARPENTRY (5)
+  { content: 'Custom sala set gawa sa solid narra — mula raw lumber hanggang finished product! 🪵 Hand-finished, tatagal ng dekada. Open for orders across Metro Manila.', tags: ['carpentry', 'furniture', 'woodwork'], imageUrl: 'https://picsum.photos/seed/carp1/800/600', userIndex: 5 },
+  { content: 'Delivered a complete dining set — 8-seater table with matching chairs, all from reclaimed tanguile wood. Sustainable furniture is the future! 🌿', tags: ['furniture', 'sustainable', 'woodwork'], imageUrl: 'https://picsum.photos/seed/carp2/800/600', userIndex: 6 },
+  { content: 'Just finished ceiling and partition wall installation for a new office in Parañaque. Clean lines, on schedule, and within budget. 💪', tags: ['carpentry', 'fitout', 'office'], imageUrl: 'https://picsum.photos/seed/carp3/800/600', userIndex: 7 },
+  { content: 'Custom-made mahogany front door installed for a client in Las Piñas! Solid construction with carved details. Built to last a lifetime. 🚪', tags: ['carpentry', 'door', 'woodwork'], imageUrl: 'https://picsum.photos/seed/carp4/800/600', userIndex: 8 },
+  { content: 'Completed a wooden truss system for a new build in Antipolo — 3-bedroom house. Strong, lightweight, and properly braced. Ready for roofing! 🏠', tags: ['roofing', 'truss', 'carpentry'], imageUrl: 'https://picsum.photos/seed/carp5/800/600', userIndex: 9 },
+
+  // EDUCATION (5)
+  { content: 'Student passed the UP Diliman entrance exam with a score of 98/100 in Math! 🎉 3 months of intensive review — personalized approach works!', tags: ['mathtutoring', 'education'], imageUrl: 'https://picsum.photos/seed/edu1/800/600', userIndex: 10 },
+  { content: 'My IELTS student scored Band 8.0 overall — she needed 7.5 for her UK visa! 🇬🇧 Customized mock tests, grammar drilling, and speaking practice.', tags: ['ielts', 'english', 'tutoring'], imageUrl: 'https://picsum.photos/seed/edu2/800/600', userIndex: 11 },
+  { content: 'Board exam results are out — 4 out of 5 ng reviewees ko pumasa sa LET Science! 🧪 Full coverage ng Gen Science, Physics, and Chemistry.', tags: ['science', 'boardreview', 'education'], imageUrl: 'https://picsum.photos/seed/edu3/800/600', userIndex: 12 },
+  { content: 'Phonics reading breakthrough — my Grade 1 student went from non-reader to reading full sentences in 8 weeks! 📚', tags: ['phonics', 'reading', 'education'], imageUrl: 'https://picsum.photos/seed/edu4/800/600', userIndex: 13 },
+  { content: 'Portfolio prep results: 3 out of 4 students accepted sa their top choice architecture schools! 🖼️ Drawing, perspective, and digital rendering.', tags: ['art', 'portfolio', 'education'], imageUrl: 'https://picsum.photos/seed/edu5/800/600', userIndex: 14 },
+
+  // ELECTRICIAN (5)
+  { content: 'Completed a full home installation: 30 LED downlights, 3 circuit breakers, and a smart switch system wired throughout a brand new house in QC! 💡', tags: ['electrical', 'smartswitch', 'newhome'], imageUrl: 'https://picsum.photos/seed/elec1/800/600', userIndex: 15 },
+  { content: 'Solar panel installation done for a residential home in Mandaluyong — 5kW system with battery backup. Lower electric bills starting this month! ☀️', tags: ['solar', 'electrical', 'renewable'], imageUrl: 'https://picsum.photos/seed/elec2/800/600', userIndex: 16 },
+  { content: 'Factory electrical maintenance completed — motor control center rewiring, PLC panel cleanup. Zero downtime during the upgrade! ⚡', tags: ['industrial', 'electrical', 'maintenance'], imageUrl: 'https://picsum.photos/seed/elec3/800/600', userIndex: 17 },
+  { content: 'Aircon installation season! Just finished 3 split-type units for a condo in BGC. Professional installation = mas malamig at matipid sa kuryente. ❄️', tags: ['aircon', 'installation', 'electrical'], imageUrl: 'https://picsum.photos/seed/elec4/800/600', userIndex: 18 },
+  { content: 'Emergency call at 11 PM — breaker kept tripping due to a short circuit in the kitchen line. Found the faulty wire, repaired, all good by midnight! 🔧', tags: ['emergency', 'electrical', 'repair'], imageUrl: 'https://picsum.photos/seed/elec5/800/600', userIndex: 19 },
+
+  // PLUMBER (5)
+  { content: 'Before & after ng bathroom rehab sa Caloocan — bagong tiles, bowl, shower system, at complete pipework. 🚿 25 years experience!', tags: ['plumbing', 'renovation', 'bathroom'], imageUrl: 'https://picsum.photos/seed/plumb1/800/600', userIndex: 20 },
+  { content: 'Kitchen sink and faucet replacement plus under-sink drainage fix in Muntinlupa. Quick, clean, and no leaks guaranteed! 🔧', tags: ['plumbing', 'kitchen', 'repair'], imageUrl: 'https://picsum.photos/seed/plumb2/800/600', userIndex: 21 },
+  { content: 'Deep well pump installation done for a house in San Juan — strong water pressure on all floors now! Pressure tank included. 💧', tags: ['waterpump', 'plumbing', 'installation'], imageUrl: 'https://picsum.photos/seed/plumb3/800/600', userIndex: 22 },
+  { content: 'Cleared a severely clogged main sewer line in Pasig — hydro jetting + camera inspection revealed root intrusion. All fixed! 🌿🔧', tags: ['drainage', 'sewer', 'plumbing'], imageUrl: 'https://picsum.photos/seed/plumb4/800/600', userIndex: 23 },
+  { content: 'Fire sprinkler system installation for a new commercial building in Makati — code-compliant and inspected. Safety first! 🔥', tags: ['firesafety', 'plumbing', 'commercial'], imageUrl: 'https://picsum.photos/seed/plumb5/800/600', userIndex: 24 },
+
+  // RANDOM SKILLS (15)
+  { content: 'Deep cleaning transformation para sa 2-bedroom condo sa Pasig! 🧹 Grout scrubbing, appliance degreasing, carpet shampooing. Book now!', tags: ['cleaning', 'deepclean', 'condo'], imageUrl: 'https://picsum.photos/seed/rand1/800/600', userIndex: 25 },
+  { content: 'Fresh exterior paint job sa 2-storey house sa Las Piñas! 🎨 Weathershield paint, clean lines, walang drip. Free estimate available!', tags: ['painting', 'exterior', 'renovation'], imageUrl: 'https://picsum.photos/seed/rand2/800/600', userIndex: 26 },
+  { content: 'Steel security gate fabricated and installed — designed by the client, built by me! 🔩 MIG welded, primered, and powder-coated.', tags: ['welding', 'steelgate', 'fabrication'], imageUrl: 'https://picsum.photos/seed/rand3/800/600', userIndex: 27 },
+  { content: 'Garden makeover para sa subdivision home sa Antipolo! 🌿 Ornamental plants, lawn leveling, and stone pathway. Available across Rizal!', tags: ['landscaping', 'gardening', 'renovation'], imageUrl: 'https://picsum.photos/seed/rand4/800/600', userIndex: 28 },
+  { content: 'My 9-year-old student just performed Moonlight Sonata at their school recital! 🎹 2 years of consistent lessons — so proud!', tags: ['piano', 'music', 'teaching'], imageUrl: 'https://picsum.photos/seed/rand5/800/600', userIndex: 29 },
+  { content: 'Completed a penetration test for an MSME — found 3 critical vulnerabilities before they could be exploited! 🔐 All patched and verified.', tags: ['cybersecurity', 'pentest', 'infosec'], imageUrl: 'https://picsum.photos/seed/rand6/800/600', userIndex: 30 },
+  { content: 'Brand identity package delivered for a new food startup — logo, color palette, packaging mockups, and social media templates! 🎨', tags: ['design', 'branding', 'logo'], imageUrl: 'https://picsum.photos/seed/rand7/800/600', userIndex: 31 },
+  { content: 'CHB wall at concrete flooring ng bodega — done in 3 days! 🧱 Reinforced footing, plastered at painted. 18 years sa masonry work.', tags: ['masonry', 'construction', 'concrete'], imageUrl: 'https://picsum.photos/seed/rand8/800/600', userIndex: 32 },
+  { content: 'Aircon deep cleaning result — shocking kung gaano karumi! 😱 Regular cleaning = mas malamig at mas matipid sa kuryente.', tags: ['aircon', 'cleaning', 'maintenance'], imageUrl: 'https://picsum.photos/seed/rand9/800/600', userIndex: 33 },
+  { content: 'Rooftop waterproofing completed sa unit sa Muntinlupa — zero leaks guaranteed! ☔ 3-layer elastomeric coating with fiber mesh.', tags: ['roofing', 'waterproofing', 'construction'], imageUrl: 'https://picsum.photos/seed/rand10/800/600', userIndex: 34 },
+  { content: 'JLPT N3 student passed with 95%! 🇯🇵 Intensive 6-month program covering kanji, grammar, listening. Now accepting N5 students.', tags: ['japanese', 'jlpt', 'language'], imageUrl: 'https://picsum.photos/seed/rand11/800/600', userIndex: 35 },
+  { content: 'Grew a local restaurant brand from 3K to 85K Instagram followers in 5 months! 🍽️ Content calendar, stories, and paid ads.', tags: ['socialmedia', 'instagram', 'marketing'], imageUrl: 'https://picsum.photos/seed/rand12/800/600', userIndex: 36 },
+  { content: 'New Shopify store launched for a local clothing brand — custom theme, upsell funnels, abandoned cart emails! 🛒 Speed score: 94/100.', tags: ['shopify', 'ecommerce', 'webdev'], imageUrl: 'https://picsum.photos/seed/rand13/800/600', userIndex: 37 },
+  { content: 'Client transformation after 12 weeks of personalized training — down 8kg, body fat from 28% to 19%! 💪 Programs available in BGC.', tags: ['fitness', 'training', 'transformation'], imageUrl: 'https://picsum.photos/seed/rand14/800/600', userIndex: 38 },
+  { content: 'Student passed the LTO written exam on the FIRST try! 🚗 5-session program covering traffic signs, road rules, and defensive driving.', tags: ['driving', 'lto', 'lessons'], imageUrl: 'https://picsum.photos/seed/rand15/800/600', userIndex: 39 },
+];
+
+// ─── Reels (at least 1 per worker — 40 reels) ───────────────────────────────
+
+const reelsData = [
+  // TECH (5)
+  { description: 'React + Node.js full-stack app build in 60 seconds ⚡ From setup to deployment. #webdev #fullstack', tags: ['webdev', 'react', 'nodejs'], detectedSkills: ['React', 'Node.js', 'MongoDB'], views: 8900, duration: 58, userIndex: 0 },
+  { description: 'AWS cloud architecture walkthrough — scalable infra for a startup on minimal budget ☁️ #devops', tags: ['aws', 'devops', 'cloud'], detectedSkills: ['AWS', 'Docker', 'CI/CD'], views: 14200, duration: 110, userIndex: 1 },
+  { description: 'Building a delivery app in React Native — live coding session! 📱 #mobiledev #reactnative', tags: ['reactnative', 'mobiledev'], detectedSkills: ['React Native', 'Flutter', 'Firebase'], views: 6500, duration: 90, userIndex: 2 },
+  { description: 'UI/UX design process — wireframe to high-fidelity prototype in Figma 🎨 #uidesign', tags: ['uidesign', 'figma', 'ux'], detectedSkills: ['Figma', 'UI Design', 'Prototyping'], views: 12000, duration: 85, userIndex: 3 },
+  { description: 'Data visualization dashboard built in Python & Power BI — sales insights in minutes! 📊', tags: ['python', 'powerbi', 'data'], detectedSkills: ['Python', 'Power BI', 'Data Analysis'], views: 6100, duration: 65, userIndex: 4 },
+
+  // CARPENTRY (5)
+  { description: 'Custom narra wood sala set — from raw lumber to finished furniture! 🪵 #carpentry #handmade', tags: ['carpentry', 'furniture'], detectedSkills: ['Carpentry', 'Furniture Making'], views: 3200, duration: 60, userIndex: 5 },
+  { description: 'Reclaimed wood dining table build — sustainable and beautiful! ♻️ #woodwork #sustainable', tags: ['furniture', 'sustainable'], detectedSkills: ['Furniture Making', 'Wood Finishing'], views: 4100, duration: 75, userIndex: 6 },
+  { description: 'Office partition wall installation — time lapse from start to finish! 🏢 #fitout', tags: ['carpentry', 'fitout'], detectedSkills: ['Carpentry', 'Interior Fit-out'], views: 2800, duration: 50, userIndex: 7 },
+  { description: 'Hand-carved mahogany door — detail work close-up! 🚪 #craftsmanship #woodwork', tags: ['carpentry', 'door'], detectedSkills: ['Carpentry', 'Custom Woodwork'], views: 5500, duration: 45, userIndex: 8 },
+  { description: 'Wooden truss fabrication for a new build — strong and precise! 🏠 #construction', tags: ['roofing', 'truss'], detectedSkills: ['Truss Fabrication', 'Carpentry'], views: 3700, duration: 55, userIndex: 9 },
+
+  // EDUCATION (5)
+  { description: 'Quick math trick — solve quadratic equations in seconds! ✏️ #mathtutoring #tips', tags: ['math', 'tutoring'], detectedSkills: ['Math Tutoring', 'Algebra'], views: 15000, duration: 40, userIndex: 10 },
+  { description: 'IELTS Speaking Band 8 sample — tips for fluency and coherence! 🗣️ #ielts #english', tags: ['ielts', 'english'], detectedSkills: ['IELTS Preparation', 'English Tutoring'], views: 9800, duration: 70, userIndex: 11 },
+  { description: 'Fun chemistry experiment — making elephant toothpaste with students! 🧪 #science #teaching', tags: ['science', 'education'], detectedSkills: ['Chemistry Tutoring', 'Science Education'], views: 22000, duration: 55, userIndex: 12 },
+  { description: 'Phonics lesson — blending sounds CVC words! Perfect for ages 4-6 📖 #earlylearning', tags: ['phonics', 'reading'], detectedSkills: ['Phonics', 'Early Childhood Education'], views: 7200, duration: 35, userIndex: 13 },
+  { description: 'Speed drawing session — portrait sketch in 5 minutes! ✍️ #art #drawing', tags: ['art', 'drawing'], detectedSkills: ['Drawing Lessons', 'Art Teaching'], views: 11500, duration: 60, userIndex: 14 },
+
+  // ELECTRICIAN (5)
+  { description: 'Panel installation done! Complete rewiring ng 2-storey house. Safe at up to code! 🔌', tags: ['electrical', 'panel'], detectedSkills: ['Electrical Wiring', 'Panel Installation'], views: 1240, duration: 45, userIndex: 15 },
+  { description: 'Solar panel installation walkthrough — from mounting to inverter connection! ☀️ #solar', tags: ['solar', 'electrical'], detectedSkills: ['Solar Panel Installation', 'Electrical Wiring'], views: 8500, duration: 95, userIndex: 16 },
+  { description: 'PLC wiring and motor control setup for a factory line — clean and organized! ⚡', tags: ['industrial', 'electrical'], detectedSkills: ['PLC Wiring', 'Industrial Wiring'], views: 3400, duration: 70, userIndex: 17 },
+  { description: 'Aircon split-type installation — copper pipe bending, vacuum, and charging! ❄️ #aircon', tags: ['aircon', 'installation'], detectedSkills: ['Aircon Installation', 'Electrical Wiring'], views: 18000, duration: 80, userIndex: 18 },
+  { description: 'Emergency electrical repair — finding a short circuit with a clamp meter! 🔍 #repair', tags: ['emergency', 'electrical'], detectedSkills: ['Emergency Electrical', 'Circuit Breaker Repair'], views: 9200, duration: 50, userIndex: 19 },
+
+  // PLUMBER (5)
+  { description: 'Bathroom renovation — complete pipework in one day! Before & after 🚿 #plumbing', tags: ['plumbing', 'renovation'], detectedSkills: ['Plumbing', 'Pipe Fitting'], views: 5800, duration: 72, userIndex: 20 },
+  { description: 'Kitchen faucet replacement — quick and clean! No more drips 💧 #plumbing #diy', tags: ['plumbing', 'kitchen'], detectedSkills: ['Fixture Installation', 'Leak Repair'], views: 4200, duration: 35, userIndex: 21 },
+  { description: 'Deep well pump installation and pressure tank setup — strong flow on all floors! 💧', tags: ['waterpump', 'plumbing'], detectedSkills: ['Water Pump Installation', 'Plumbing'], views: 3600, duration: 65, userIndex: 22 },
+  { description: 'Hydro jetting a clogged sewer line — watch the blockage clear! 🌊 #drainage', tags: ['drainage', 'sewer'], detectedSkills: ['Drainage', 'Clog Removal'], views: 25000, duration: 55, userIndex: 23 },
+  { description: 'Fire sprinkler system installation — safety check and pressure test! 🔥 #safety', tags: ['firesafety', 'plumbing'], detectedSkills: ['Fire Sprinkler', 'Commercial Plumbing'], views: 4800, duration: 80, userIndex: 24 },
+
+  // RANDOM SKILLS (15)
+  { description: 'Condo deep cleaning transformation — grout, windows, kitchen! ✨ #cleaning #satisfying', tags: ['cleaning', 'deepclean'], detectedSkills: ['Deep Cleaning', 'House Cleaning'], views: 32000, duration: 60, userIndex: 25 },
+  { description: 'House exterior painting time lapse — fresh coat in one day! 🎨 #painting', tags: ['painting', 'exterior'], detectedSkills: ['Painting', 'Waterproofing'], views: 7800, duration: 50, userIndex: 26 },
+  { description: 'Steel gate fabrication — cutting, welding, painting! From scrap to finish 🔧 #welding', tags: ['welding', 'fabrication'], detectedSkills: ['Welding', 'Steel Fabrication', 'Gate Making'], views: 7600, duration: 80, userIndex: 27 },
+  { description: 'Garden transformation — from bare soil to paradise! 🌺 #landscaping #garden', tags: ['landscaping', 'gardening'], detectedSkills: ['Landscaping', 'Plant Installation'], views: 9300, duration: 70, userIndex: 28 },
+  { description: 'Piano recital piece by my 8-year-old student — Fur Elise! 🎹 So proud of her! #music', tags: ['piano', 'music'], detectedSkills: ['Piano Lessons', 'Music Theory'], views: 4500, duration: 120, userIndex: 29 },
+  { description: 'Penetration test demo — finding SQL injection in a web app 🔐 #cybersecurity #ethicalhacking', tags: ['cybersecurity', 'pentest'], detectedSkills: ['Penetration Testing', 'Cybersecurity'], views: 16500, duration: 90, userIndex: 30 },
+  { description: 'Logo design process — from sketch to vector in Illustrator! 🎨 #graphicdesign #branding', tags: ['design', 'branding'], detectedSkills: ['Graphic Design', 'Branding'], views: 8400, duration: 65, userIndex: 31 },
+  { description: 'CHB wall building time lapse — foundation to finish! 🧱 #masonry #construction', tags: ['masonry', 'construction'], detectedSkills: ['Masonry', 'Concrete Work'], views: 5200, duration: 55, userIndex: 32 },
+  { description: 'Aircon deep cleaning — ito yung dumi na lumalabas! 😱 #aircon #satisfying', tags: ['aircon', 'cleaning'], detectedSkills: ['Aircon Cleaning', 'HVAC'], views: 45000, duration: 50, userIndex: 33 },
+  { description: 'Rooftop waterproofing — step by step para walang leaks! 🏠 #waterproofing', tags: ['roofing', 'waterproofing'], detectedSkills: ['Roofing', 'Waterproofing'], views: 8900, duration: 60, userIndex: 34 },
+  { description: 'Japanese greetings in 60 seconds — perfect for beginners! 🇯🇵 #nihongo #japanese', tags: ['japanese', 'language'], detectedSkills: ['Japanese Language', 'JLPT Preparation'], views: 12000, duration: 58, userIndex: 35 },
+  { description: 'Social media content strategy — how I grew a brand to 100K! 🚀 #socialmedia #tips', tags: ['socialmedia', 'marketing'], detectedSkills: ['Social Media Management', 'Content Creation'], views: 18500, duration: 95, userIndex: 36 },
+  { description: 'Shopify store setup speed run — theme, products, payments in 10 minutes! 🛒 #ecommerce', tags: ['shopify', 'ecommerce'], detectedSkills: ['Shopify', 'E-commerce'], views: 7200, duration: 85, userIndex: 37 },
+  { description: 'HIIT workout demo — 15 minutes, no equipment needed! 💪 #fitness #workout', tags: ['fitness', 'hiit'], detectedSkills: ['Personal Training', 'HIIT'], views: 28000, duration: 110, userIndex: 38 },
+  { description: 'Parallel parking tutorial — easiest technique for beginners! 🚗 #driving #lto', tags: ['driving', 'tutorial'], detectedSkills: ['Driving Lessons', 'Defensive Driving'], views: 35000, duration: 75, userIndex: 39 },
 ];
 
 // ─── Seed Function ────────────────────────────────────────────────────────────
@@ -748,98 +734,117 @@ async function seed() {
     await mongoose.connect(MONGODB_URI);
     console.log(`Connected to ${MONGODB_URI}`);
 
-    console.log('Clearing existing data...');
-    await User.deleteMany({});
-    // Drop any geo indexes on location field from previous schema
+    console.log('Clearing all data...');
+    await Promise.all([
+      User.deleteMany({}),
+      Post.deleteMany({}),
+      Reel.deleteMany({}),
+    ]);
+    // Drop any stale indexes
     try { await mongoose.connection.collection('users').dropIndexes(); } catch (_) {}
-    await Post.deleteMany({});
-    await Reel.deleteMany({});
+    // Clear related collections
+    const collections = ['conversations', 'messages', 'notifications', 'ratings'];
+    for (const col of collections) {
+      try { await mongoose.connection.collection(col).deleteMany({}); } catch (_) {}
+    }
 
-    console.log('Creating 30 users...');
+    console.log('Creating 40 freelancer users (all Level 2)...');
     const hashedPassword = await bcrypt.hash('password123', 10);
 
-    // Assign badge levels for variety:
-    // Level 3 (Verified Freelancer): top-rated freelancers with clearance + rating
-    // Level 2 (Freelancer): freelancers with full profile but no clearance
-    // Level 1 (Hirer): identity-verified but no freelancer profile
-    // Level 0: unverified client
-    const badgeOverrides = {
-      // Level 3 — Verified Freelancer + Hirer (passed all checks)
-      'erning@example.com':  { badgeLevel: 3, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234001', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Philippine National ID', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true, clearance: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'NBI Clearance', verified: true, uploadedAt: new Date() }, isVerified: true, resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf', portfolio: [{ title: 'Panel Installation — QC Commercial', description: 'Complete rewiring of 2-storey building', imageUrl: 'https://picsum.photos/seed/port1/400/300' }] },
-      'boyet@example.com':   { badgeLevel: 3, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234002', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Philippine National ID', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true, clearance: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Barangay Clearance', verified: true, uploadedAt: new Date() }, isVerified: true, resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf', portfolio: [{ title: 'Custom Narra Sala Set', description: 'Solid wood furniture made from scratch', imageUrl: 'https://picsum.photos/seed/port2/400/300' }] },
-      'maria@example.com':   { badgeLevel: 3, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234003', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Passport', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true, clearance: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'NBI Clearance', verified: true, uploadedAt: new Date() }, isVerified: true, resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf', portfolio: [{ title: 'E-Commerce Platform', description: 'React + Node.js full-stack build', imageUrl: 'https://picsum.photos/seed/port3/400/300', link: 'https://example.com' }] },
-      'nena@example.com':    { badgeLevel: 3, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234004', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Philippine National ID', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true, clearance: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Police Clearance', verified: true, uploadedAt: new Date() }, isVerified: true, resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf', portfolio: [{ title: 'Deep Cleaning Service', description: 'Before & after condo deep clean', imageUrl: 'https://picsum.photos/seed/port4/400/300' }] },
-      'jessa@example.com':   { badgeLevel: 3, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234005', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Philippine National ID', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true, clearance: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'NBI Clearance', verified: true, uploadedAt: new Date() }, isVerified: true, resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf', portfolio: [{ title: 'Math Curriculum Design', description: 'Custom learning program for K-12' }] },
-
-      // Level 2 — Freelancer + Hirer (verified identity + full work profile)
-      'domeng@example.com':  { badgeLevel: 2, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234010', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Philippine National ID', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true, isFreelancer: true, resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf', portfolio: [{ title: 'Bathroom Renovation', description: 'Complete bathroom rehab', imageUrl: 'https://picsum.photos/seed/port5/400/300' }] },
-      'rod@example.com':     { badgeLevel: 2, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234011', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Drivers License', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true, isFreelancer: true, resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf', portfolio: [{ title: 'House Exterior Paint Job', imageUrl: 'https://picsum.photos/seed/port6/400/300' }] },
-      'carlos@example.com':  { badgeLevel: 2, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234012', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Passport', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true, isFreelancer: true, resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf', portfolio: [{ title: 'AWS Infra for Startup', description: 'Cloud architecture design', imageUrl: 'https://picsum.photos/seed/port7/400/300', link: 'https://example.com' }] },
-      'trisha@example.com':  { badgeLevel: 2, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234013', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Philippine National ID', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true, isFreelancer: true, resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf', portfolio: [{ title: 'Sales Dashboard', description: 'Power BI analytics dashboard' }] },
-      'camille@example.com': { badgeLevel: 2, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234014', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Philippine National ID', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true, isFreelancer: true, resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf', portfolio: [{ title: 'Student Recital — Fur Elise' }] },
-      'jun@example.com':     { badgeLevel: 2, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234015', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Philippine National ID', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true, isFreelancer: true, resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf', portfolio: [{ title: 'Steel Gate Fabrication', imageUrl: 'https://picsum.photos/seed/port8/400/300' }] },
-
-      // Level 1 — Hirer only (identity verified, no freelancer profile)
-      'tony@example.com':    { badgeLevel: 1, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234020', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Philippine National ID', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true },
-      'lito@example.com':    { badgeLevel: 1, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234021', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Drivers License', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true },
-      'kevin@example.com':   { badgeLevel: 1, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234022', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Passport', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true },
-      'paolo@example.com':   { badgeLevel: 1, isHirer: true, emailVerified: true, phoneVerified: true, phone: '+639171234030', governmentId: { url: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', type: 'Philippine National ID', verified: true, uploadedAt: new Date() }, selfieUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg', selfieVerified: true },
-    };
-
+    // Level 2 requirements: emailVerified + KYC approved (gov ID + selfie verified) + resume + >=3 skills + hourlyRate > 0 + >=1 portfolio
     const createdUsers = await User.insertMany(
-      users.map(u => ({
+      users.map((u, i) => ({
         ...u,
         password: hashedPassword,
-        ...(badgeOverrides[u.email] || {}),
+        isFreelancer: true,
+        isHirer: true,
+        isOpenForWork: true,
+        emailVerified: true,
+        badgeLevel: 2,
+        kycStatus: 'approved',
+        governmentId: {
+          url: GOV_ID_IMG,
+          type: ['PhilSys', 'Passport', 'Driver License', 'SSS', 'UMID'][i % 5],
+          verified: true,
+          uploadedAt: new Date(),
+        },
+        selfieUrl: SELFIE_IMG,
+        selfieVerified: true,
+        resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf',
+        portfolio: [{
+          title: u.skills[0],
+          description: `Sample work: ${u.skills.slice(0, 3).join(', ')}`,
+          imageUrl: `https://picsum.photos/seed/portfolio${i}/400/300`,
+        }],
       }))
     );
-    console.log(`  ✓ Created ${createdUsers.length} users`);
+    console.log(`  Created ${createdUsers.length} freelancers`);
 
-    const freelancers = createdUsers.filter(u => u.isFreelancer);
-    console.log(`    → ${freelancers.length} freelancers, ${createdUsers.length - freelancers.length} client(s)`);
-
-    const userEmailMap = Object.fromEntries(createdUsers.map(u => [u.email, u]));
-
-    console.log('Creating posts...');
-    const createdPosts = await Post.insertMany(
-      posts.map((p, i) => {
-        const { userEmail, ...postFields } = p;
-        const author = userEmail && userEmailMap[userEmail]
-          ? userEmailMap[userEmail]
-          : freelancers[i % freelancers.length];
-        return { ...postFields, author: author._id };
-      })
-    );
-    console.log(`  ✓ Created ${createdPosts.length} posts`);
-
-    console.log('Creating reels...');
-    const createdReels = await Reel.insertMany(
-      reelsData.map((r, i) => {
-        const { userEmail, ...reelFields } = r;
-        const author = userEmailMap[userEmail] || freelancers[i % freelancers.length];
-        return {
-          ...reelFields,
-          author: author._id,
-          videoUrl: SAMPLE_VIDEOS[i % SAMPLE_VIDEOS.length],
-          thumbnailUrl: `https://picsum.photos/seed/reel${i + 1}/400/700`,
-        };
-      })
-    );
-    console.log(`  ✓ Created ${createdReels.length} reels`);
-
-    console.log('\n════════════════════════════════════════');
-    console.log('  SEED COMPLETE — 30 Filipino Workers + Reels + Badges');
-    console.log('════════════════════════════════════════');
-    console.log('\nAll passwords: password123\n');
-
-    const badgeLabels = ['Unverified', 'Hirer', 'Freelancer', 'Verified'];
-    [3, 2, 1, 0].forEach(lvl => {
-      const group = createdUsers.filter(u => (u.badgeLevel || 0) === lvl);
-      if (group.length) {
-        console.log(`\n── ${badgeLabels[lvl]} (Level ${lvl}) ──`);
-        group.forEach(u => console.log(`  ${u.email.padEnd(24)} ${u.name}`));
-      }
+    // Admin account
+    await User.create({
+      name: 'GaLink Admin',
+      email: 'admin@galink.ph',
+      password: await bcrypt.hash('Admin@GaLink2026!', 10),
+      isAdmin: true,
+      isActive: true,
+      emailVerified: true,
+      badgeLevel: 0,
+      profilePhoto: 'https://api.dicebear.com/7.x/initials/svg?seed=GaLink+Admin&backgroundColor=6366f1&textColor=ffffff',
+      bio: 'Platform administrator',
     });
+    console.log('  Admin account: admin@galink.ph / Admin@GaLink2026!');
+
+    // Posts
+    console.log('Creating posts (1 per worker)...');
+    const createdPosts = await Post.insertMany(
+      posts.map((p) => ({
+        content: p.content,
+        tags: p.tags,
+        imageUrl: p.imageUrl,
+        author: createdUsers[p.userIndex]._id,
+      }))
+    );
+    console.log(`  Created ${createdPosts.length} posts`);
+
+    // Reels
+    console.log('Creating reels (1 per worker)...');
+    const createdReels = await Reel.insertMany(
+      reelsData.map((r, i) => ({
+        description: r.description,
+        tags: r.tags,
+        detectedSkills: r.detectedSkills,
+        views: r.views,
+        duration: r.duration,
+        author: createdUsers[r.userIndex]._id,
+        videoUrl: SAMPLE_VIDEOS[i % SAMPLE_VIDEOS.length],
+        thumbnailUrl: `https://picsum.photos/seed/reel${i + 1}/400/700`,
+      }))
+    );
+    console.log(`  Created ${createdReels.length} reels`);
+
+    // Summary
+    console.log('\n════════════════════════════════════════');
+    console.log('  SEED COMPLETE — 40 Filipino Workers');
+    console.log('════════════════════════════════════════');
+    console.log('\nAll passwords: password123');
+    console.log('Admin: admin@galink.ph / Admin@GaLink2026!\n');
+
+    const groups = [
+      { label: 'Tech', range: [0, 5] },
+      { label: 'Carpentry', range: [5, 10] },
+      { label: 'Education', range: [10, 15] },
+      { label: 'Electrician', range: [15, 20] },
+      { label: 'Plumber', range: [20, 25] },
+      { label: 'Random Skills', range: [25, 40] },
+    ];
+
+    groups.forEach(({ label, range }) => {
+      console.log(`\n── ${label} ──`);
+      createdUsers.slice(range[0], range[1]).forEach(u =>
+        console.log(`  ${u.email.padEnd(36)} ${u.name} (Level ${u.badgeLevel})`)
+      );
+    });
+
     await mongoose.disconnect();
     process.exit(0);
   } catch (err) {

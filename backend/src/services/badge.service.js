@@ -33,10 +33,9 @@ export function computeBadgeLevel(user) {
   // ── Level 1 checks ──────────────────────────────────────────────────────
   const hasGovId = user.governmentId?.url && user.governmentId?.verified;
   const hasSelfie = user.selfieUrl && user.selfieVerified;
-  const hasPhone = user.phoneVerified;
   const hasEmail = user.emailVerified;
 
-  if (!hasGovId || !hasSelfie || !hasPhone || !hasEmail) return 0;
+  if (!hasGovId || !hasSelfie || !hasEmail) return 0;
 
   // ── Level 2 checks ──────────────────────────────────────────────────────
   const hasResume = !!user.resumeUrl;
@@ -47,7 +46,7 @@ export function computeBadgeLevel(user) {
   if (!hasResume || !hasSkills || !hasRate || !hasPortfolio) return 1;
 
   // ── Level 3 checks ──────────────────────────────────────────────────────
-  const hasClearance = user.clearance?.url && user.clearance?.verified;
+  const hasClearance = user.clearance?.url && user.clearance?.verified && user.clearanceStatus === 'approved';
   const hasRating = (user.totalRatings || 0) >= 1;
 
   if (!hasClearance || !hasRating) return 2;
@@ -89,7 +88,7 @@ export function getBadgeChecklist(user) {
     level3: {
       label: "Verified Freelancer ⭐",
       items: [
-        { key: "clearance", label: "Upload NBI or Police Clearance", done: !!(user.clearance?.url && user.clearance?.verified) },
+        { key: "clearance", label: "Upload NBI or Police Clearance", done: !!(user.clearance?.url && user.clearance?.verified && user.clearanceStatus === 'approved') },
         { key: "rating",    label: "Receive at least 1 job rating",  done: (user.totalRatings || 0) >= 1 },
       ],
     },

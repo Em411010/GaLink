@@ -18,9 +18,9 @@ export default function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await login(form);
+      const user = await login(form);
       toast.success("Welcome back!");
-      navigate("/feed");
+      navigate(user?.isAdmin ? "/admin" : "/feed");
     } catch (err) {
       toast.error(err.response?.data?.message || "Login failed");
     } finally {

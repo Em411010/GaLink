@@ -95,4 +95,30 @@ export const verificationAPI = {
   removePortfolio: (itemId) => api.delete(`/verification/portfolio/${itemId}`),
 };
 
+// Admin
+export const adminAPI = {
+  getStats: () => api.get("/admin/stats"),
+  getUsers: (params) => api.get("/admin/users", { params }),
+  getPendingClearances: () => api.get("/admin/pending-clearances"),
+  approveClearance: (id) => api.post(`/admin/users/${id}/approve-clearance`),
+  rejectClearance: (id, reason) => api.post(`/admin/users/${id}/reject-clearance`, { reason }),
+  approveKYC: (id) => api.post(`/admin/users/${id}/approve-kyc`),
+  rejectKYC: (id, reason) => api.post(`/admin/users/${id}/reject-kyc`, { reason }),
+  approveGovernmentId: (id) => api.post(`/admin/users/${id}/approve-government-id`),
+  rejectGovernmentId: (id, reason) => api.post(`/admin/users/${id}/reject-government-id`, { reason }),
+  approveSelfie: (id) => api.post(`/admin/users/${id}/approve-selfie`),
+  rejectSelfie: (id, reason) => api.post(`/admin/users/${id}/reject-selfie`, { reason }),
+  getPendingKYC: (params) => api.get("/admin/pending-kyc", { params }),
+  revokeUser: (id, reason) => api.post(`/admin/users/${id}/revoke`, { reason }),
+  banUser: (id) => api.post(`/admin/users/${id}/ban`),
+  unbanUser: (id) => api.post(`/admin/users/${id}/unban`),
+  getPosts: (params) => api.get("/admin/posts", { params }),
+  getPost: (id) => api.get(`/admin/posts/${id}`),
+  deletePost: (id) => api.delete(`/admin/posts/${id}`),
+  deleteComment: (postId, commentId) => api.delete(`/admin/posts/${postId}/comments/${commentId}`),
+  getReels: (params) => api.get("/admin/reels", { params }),
+  getReel: (id) => api.get(`/admin/reels/${id}`),
+  deleteReel: (id) => api.delete(`/admin/reels/${id}`),
+};
+
 export default api;

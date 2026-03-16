@@ -401,6 +401,17 @@ export default function Navbar() {
                       Verification
                     </Link>
                   </li>
+                  {user?.isAdmin && (
+                    <li>
+                      <Link
+                        to="/admin"
+                        className="flex items-center gap-2.5 rounded-lg text-primary font-semibold"
+                      >
+                        <ShieldCheck size={15} />
+                        Admin Dashboard
+                      </Link>
+                    </li>
+                  )}
                   <div className="divider my-1 h-0" />
                   <li>
                     <button
