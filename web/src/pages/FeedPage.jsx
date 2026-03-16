@@ -46,14 +46,14 @@ export default function FeedPage() {
   };
 
   return (
-    <div className="grid grid-cols-12 gap-0 w-full items-start">
-      {/* Left — 2 cols */}
-      <div className="col-span-2 sticky top-20 self-start">
+    <div className="grid grid-cols-1 md:grid-cols-12 gap-0 w-full items-start">
+      {/* Left — 2 cols (hidden on mobile via LeftSidebar internal hidden md:block) */}
+      <div className="hidden md:block col-span-2 sticky top-20 self-start">
         <LeftSidebar />
       </div>
 
-      {/* Center — 4 cols, starts at col 5 (2-col margin) */}
-      <div className="col-start-5 col-span-4 min-w-0 space-y-6 py-0">
+      {/* Center — full-width on mobile, 4 cols on desktop */}
+      <div className="md:col-start-5 md:col-span-4 min-w-0 space-y-6 py-0">
         {loading && posts.length === 0 ? (
           <div className="flex justify-center py-12">
             <span className="loading loading-spinner loading-lg text-primary"></span>
@@ -89,8 +89,8 @@ export default function FeedPage() {
         )}
       </div>
 
-      {/* Right — 2 cols, starts at col 11 (2-col margin) */}
-      <div className="col-start-11 col-span-2 sticky top-20 self-start">
+      {/* Right — 2 cols (hidden on mobile via RightSidebar internal hidden lg:block) */}
+      <div className="hidden lg:block col-start-11 col-span-2 sticky top-20 self-start">
         <RightSidebar />
       </div>
     </div>

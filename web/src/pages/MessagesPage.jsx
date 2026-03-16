@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { messageAPI, userAPI } from "../services/api";
 import useAuthStore from "../store/useAuthStore";
 import toast from "react-hot-toast";
-import { Send, Paperclip, X, Reply, Trash2, ExternalLink } from "lucide-react";
+import { Send, Paperclip, X, Reply, Trash2, ExternalLink, ArrowLeft } from "lucide-react";
 import { io } from "socket.io-client";
 import { AccessGate } from "../components/badge/BadgeSystem";
 import { UserBadges } from "../components/badge/BadgeSystem";
@@ -275,7 +275,7 @@ export default function MessagesPage() {
 
   return (
     <AccessGate requiredLevel={1} currentLevel={user?.badgeLevel || 0} feature="Messaging">
-    <div className="h-[calc(100vh-120px)] flex gap-4">
+    <div className="h-[calc(100vh-120px)] flex gap-0 md:gap-4">
       {/* ── Delete confirmation modal ──────────────────────────────────── */}
       {confirmDeleteMsg && (
         <div
@@ -311,7 +311,7 @@ export default function MessagesPage() {
         </div>
       )}
       {/* ── Conversation List ─────────────────────────────────────────────── */}
-      <div className="w-80 bg-base-100 rounded-lg shadow-md overflow-hidden flex flex-col">
+      <div className={`${activeConversation || pendingUser ? "hidden md:flex" : "flex"} w-full md:w-80 bg-base-100 rounded-lg shadow-md overflow-hidden flex-col`}>
         <div className="p-4 border-b border-base-300">
           <h2 className="font-bold text-lg">Messages</h2>
         </div>
@@ -376,7 +376,7 @@ export default function MessagesPage() {
       </div>
 
       {/* ── Chat Panel ───────────────────────────────────────────────────── */}
-      <div className="flex-1 bg-base-100 rounded-lg shadow-md flex flex-col overflow-hidden">
+      <div className={`${activeConversation || pendingUser ? "flex" : "hidden md:flex"} flex-1 bg-base-100 rounded-lg shadow-md flex-col overflow-hidden`}>
         {!activeConversation && !pendingUser ? (
           <div className="flex-1 flex items-center justify-center text-base-content/40">
             <p>Select a conversation to start messaging</p>
@@ -385,6 +385,12 @@ export default function MessagesPage() {
           <>
             {/* ── Header ─────────────────────────────────────── */}
             <div className="p-4 border-b border-base-300 flex items-center gap-3">
+              <button
+                className="btn btn-ghost btn-sm btn-circle md:hidden"
+                onClick={() => { setActiveConversation(null); setPendingUser(null); }}
+              >
+                <ArrowLeft size={18} />
+              </button>
               <button
                 className="flex items-center gap-3 hover:opacity-80 transition-opacity"
                 onClick={() => activeOther._id && navigate(`/profile/${activeOther._id}`)}

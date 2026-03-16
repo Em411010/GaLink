@@ -501,7 +501,7 @@ export default function VerificationPage() {
     switch (key) {
       case "emailVerified":
         return emailOtpSent ? (
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             <input
               type="text"
               inputMode="numeric"
