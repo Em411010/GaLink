@@ -117,7 +117,7 @@ export default function LandingPage() {
 
       {/* ── Navbar ───────────────────────────────────────────────── */}
       <nav className="fixed top-0 w-full z-50 backdrop-blur-md bg-base-100/80 border-b border-base-200">
-        <div className="w-full px-8 lg:px-16 h-16 flex items-center justify-between">
+        <div className="w-full px-4 sm:px-8 lg:px-16 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
               <Sparkles className="w-4 h-4 text-white" />
@@ -142,7 +142,7 @@ export default function LandingPage() {
         <div className="absolute top-40 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
 
-        <div className="w-full px-8 lg:px-16 relative">
+        <div className="w-full px-4 sm:px-8 lg:px-16 relative">
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
 
             {/* Left: Text */}
@@ -182,7 +182,7 @@ export default function LandingPage() {
             </div>
 
             {/* Right: Floating skilled worker cards */}
-            <div className="flex-1 relative h-96 w-full max-w-lg">
+            <div className="hidden lg:block flex-1 relative h-96 w-full max-w-lg">
               {floatingCards.map((card, i) => (
                 <div
                   key={i}
@@ -237,7 +237,7 @@ export default function LandingPage() {
 
       {/* ── Problem ──────────────────────────────────────────────── */}
       <section className="py-20 bg-base-200/50">
-        <div className="w-full px-8 lg:px-16">
+        <div className="w-full px-4 sm:px-8 lg:px-16">
           <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
             <div className="lg:w-2/5">
               <h2 className="text-3xl font-bold mb-4">Hiring skilled workers is broken.</h2>
@@ -265,7 +265,7 @@ export default function LandingPage() {
 
       {/* ── How It Works ─────────────────────────────────────────── */}
       <section className="py-24">
-        <div className="w-full px-8 lg:px-16">
+        <div className="w-full px-4 sm:px-8 lg:px-16">
           <div className="mb-16">
             <h2 className="text-3xl font-bold mb-3">How it works</h2>
             <p className="text-base-content/60">From problem to hired in under 5 minutes.</p>
@@ -293,7 +293,7 @@ export default function LandingPage() {
 
       {/* ── Demo Teaser ──────────────────────────────────────────── */}
       <section className="py-20 bg-base-200/50">
-        <div className="w-full px-8 lg:px-16">
+        <div className="w-full px-4 sm:px-8 lg:px-16">
           <div className="mb-12">
             <h2 className="text-3xl font-bold mb-3">See the AI in action</h2>
             <p className="text-base-content/60">Type any problem. Watch our AI match you instantly.</p>
@@ -366,7 +366,7 @@ export default function LandingPage() {
 
       {/* ── Features ─────────────────────────────────────────────── */}
       <section className="py-24">
-        <div className="w-full px-8 lg:px-16">
+        <div className="w-full px-4 sm:px-8 lg:px-16">
           <div className="mb-16">
             <h2 className="text-3xl font-bold mb-3">Everything you need to hire smarter</h2>
             <p className="text-base-content/60">Purpose-built for the Filipino freelancing ecosystem.</p>
@@ -387,9 +387,9 @@ export default function LandingPage() {
       </section>
 
       {/* ── Bottom CTA ───────────────────────────────────────────── */}
-      <section className="py-24 px-8 lg:px-16">
+      <section className="py-24 px-4 sm:px-8 lg:px-16">
         <div className="w-full">
-          <div className="relative bg-gradient-to-br from-violet-600 via-purple-600 to-blue-600 rounded-3xl p-12 overflow-hidden">
+            <div className="relative bg-gradient-to-br from-violet-600 via-purple-600 to-blue-600 rounded-3xl p-6 sm:p-12 overflow-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1),transparent_50%)]" />
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_80%,rgba(255,255,255,0.05),transparent_50%)]" />
 
@@ -427,7 +427,7 @@ export default function LandingPage() {
 
       {/* ── Footer ───────────────────────────────────────────────── */}
       <footer className="border-t border-base-200 py-8">
-        <div className="w-full px-8 lg:px-16 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="w-full px-4 sm:px-8 lg:px-16 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 rounded-md bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
               <Sparkles className="w-3 h-3 text-white" />

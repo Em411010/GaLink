@@ -38,9 +38,9 @@ export default function ChatbotPage() {
   return (
     <AccessGate requiredLevel={1} currentLevel={user?.badgeLevel || 0} feature="AI Assistant">
     <div className="max-w-7xl mx-auto">
-      <div className="flex items-center justify-between mb-5">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
             <Bot className="text-primary" size={30} />
             AI Assistant
           </h1>
@@ -54,14 +54,15 @@ export default function ChatbotPage() {
         </div>
         <button
           onClick={handleDelete}
-          className={`btn btn-sm gap-1 transition-all ${
+          className={`btn btn-sm gap-1 transition-all self-start ${
             confirmDelete
               ? "btn-error"
               : "btn-ghost text-base-content/50 hover:text-error"
           }`}
         >
           <Trash2 size={16} />
-          {confirmDelete ? "Tap again to delete" : "Delete Conversation"}
+          <span className="hidden sm:inline">{confirmDelete ? "Tap again to delete" : "Delete Conversation"}</span>
+          <span className="sm:hidden">{confirmDelete ? "Confirm" : "Delete"}</span>
         </button>
       </div>
 

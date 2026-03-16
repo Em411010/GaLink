@@ -263,7 +263,7 @@ export default function Navbar() {
 
               {/* Notification dropdown */}
               {showNotifications && (
-                <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-base-100 rounded-2xl shadow-2xl border border-base-content/5 overflow-hidden z-50">
+                <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-96 bg-base-100 rounded-2xl shadow-2xl border border-base-content/5 overflow-hidden z-50">
                   <div className="px-4 py-3 bg-base-200/50 border-b border-base-content/5 flex items-center justify-between">
                     <p className="font-semibold text-sm">Notifications</p>
                     {notifications.length > 0 && (
