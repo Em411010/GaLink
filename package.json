@@ -12,7 +12,7 @@
     "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=web\"",
     "dev:backend": "npm run dev --workspace=backend",
     "dev:web": "npm run dev --workspace=web",
-    "build": "npm install --workspace=web --include=dev && npm run build --workspace=web",
+    "build": "npm install --include=dev && npm run build --workspace=web",
     "start": "NODE_ENV=production node backend/src/app.js"
   },
   "devDependencies": {
