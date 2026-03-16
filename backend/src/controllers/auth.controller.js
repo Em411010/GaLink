@@ -31,7 +31,7 @@ export async function login(req, res, next) {
     if (!user || !(await user.comparePassword(password))) return res.status(401).json({ message: "Invalid email or password" });
     const token = generateToken(user._id);
     setTokenCookie(res, token);
-    res.json({ _id: user._id, name: user.name, email: user.email, isFreelancer: user.isFreelancer, profilePhoto: user.profilePhoto, badgeLevel: user.badgeLevel || 0, portfolio: user.portfolio || [] });
+    res.json({ _id: user._id, name: user.name, email: user.email, isFreelancer: user.isFreelancer, isAdmin: user.isAdmin, profilePhoto: user.profilePhoto, badgeLevel: user.badgeLevel || 0, portfolio: user.portfolio || [] });
   } catch (error) { next(error); }
 }
 export async function logout(req, res) {
