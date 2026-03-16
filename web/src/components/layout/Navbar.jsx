@@ -23,6 +23,10 @@ import {
   X,
   TrendingUp,
   ShieldCheck,
+  CheckCircle,
+  XCircle,
+  FileText,
+  Trash2,
 } from "lucide-react";
 import useAuthStore from "../../store/useAuthStore";
 import useNotificationStore from "../../store/useNotificationStore";
@@ -105,6 +109,15 @@ export default function Navbar() {
       case "comment_post": return <MessageSquare size={14} className="text-blue-400" />;
       case "match": return <Sparkles size={14} className="text-amber-400" />;
       case "follow": return <UserCheck size={14} className="text-green-400" />;
+      case "kyc_approved": return <CheckCircle size={14} className="text-success" />;
+      case "selfie_approved": return <CheckCircle size={14} className="text-success" />;
+      case "clearance_approved": return <CheckCircle size={14} className="text-success" />;
+      case "kyc_rejected": return <XCircle size={14} className="text-error" />;
+      case "selfie_rejected": return <XCircle size={14} className="text-error" />;
+      case "clearance_rejected": return <XCircle size={14} className="text-error" />;
+      case "verification_revoked": return <XCircle size={14} className="text-error" />;
+      case "post_removed": return <Trash2 size={14} className="text-error" />;
+      case "reel_removed": return <Trash2 size={14} className="text-error" />;
       default: return <Bell size={14} className="text-base-content/50" />;
     }
   };
@@ -116,6 +129,15 @@ export default function Navbar() {
       case "like_reel":  return "/reels";
       case "match":      return "/discover";
       case "follow":     return n.sender?._id ? `/profile/${n.sender._id}` : "/feed";
+      case "kyc_approved":
+      case "kyc_rejected":
+      case "selfie_approved":
+      case "selfie_rejected":
+      case "clearance_approved":
+      case "clearance_rejected":
+      case "verification_revoked": return "/verification";
+      case "post_removed": return "/feed";
+      case "reel_removed": return "/reels";
       default:           return "/feed";
     }
   };
@@ -126,13 +148,22 @@ export default function Navbar() {
   };
 
   const getNotifText = (n) => {
-    const name = n.sender?.name || "Someone";
+    const name = n.sender?.name || "GaLink Admin";
     switch (n.type) {
       case "like_post": return `${name} liked your post`;
       case "like_reel": return `${name} liked your reel`;
       case "comment_post": return `${name} commented on your post`;
       case "match": return `${name} matched with you`;
       case "follow": return `${name} followed you`;
+      case "kyc_approved": return n.message || "Your Government ID has been approved.";
+      case "selfie_approved": return n.message || "Your selfie photo has been approved.";
+      case "clearance_approved": return n.message || "Your clearance has been approved.";
+      case "kyc_rejected": return `Government ID rejected${n.message ? `: ${n.message}` : ""}`;
+      case "selfie_rejected": return `Selfie rejected${n.message ? `: ${n.message}` : ""}`;
+      case "clearance_rejected": return `Clearance rejected${n.message ? `: ${n.message}` : ""}`;
+      case "verification_revoked": return n.message || "Your verification has been revoked by an admin.";
+      case "post_removed": return n.message || "Your post was removed by an admin.";
+      case "reel_removed": return n.message || "Your reel was removed by an admin.";
       default: return `${name} sent you a notification`;
     }
   };
@@ -308,8 +339,16 @@ export default function Navbar() {
 
                           <div className="flex-1 min-w-0">
                             <p className="text-sm leading-snug">
-                              <span className="font-semibold">{n.sender?.name}</span>{" "}
-                              <span className="text-base-content/70">{getNotifText(n).replace(n.sender?.name || "", "").trim()}</span>
+                              {["kyc_approved","kyc_rejected","selfie_approved","selfie_rejected","clearance_approved","clearance_rejected","verification_revoked","post_removed","reel_removed"].includes(n.type) ? (
+                                <span className={n.type.endsWith("_rejected") ? "text-error font-medium" : "text-success font-medium"}>
+                                  {getNotifText(n)}
+                                </span>
+                              ) : (
+                                <>
+                                  <span className="font-semibold">{n.sender?.name}</span>{" "}
+                                  <span className="text-base-content/70">{getNotifText(n).replace(n.sender?.name || "", "").trim()}</span>
+                                </>
+                              )}
                             </p>
                             {n.post?.content && (
                               <p className="text-xs text-base-content/40 truncate mt-0.5">"{n.post.content.slice(0, 60)}..."</p>

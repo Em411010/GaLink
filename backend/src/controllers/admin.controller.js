@@ -2,6 +2,7 @@ import User from "../models/User.model.js";
 import Post from "../models/Post.model.js";
 import Reel from "../models/Reel.model.js";
 import { refreshBadge } from "../services/badge.service.js";
+import { createNotification } from "../services/notification.service.js";
 
 // ── GET /api/admin/stats ──────────────────────────────────────────────────────
 export async function getStats(req, res, next) {
@@ -81,7 +82,7 @@ export async function approveClearance(req, res, next) {
     user.clearanceStatus = "approved";
     user.clearanceRejectedReason = "";
     await refreshBadge(user);
-
+    await createNotification({ recipient: user._id, sender: req.user._id, type: "clearance_approved", message: "Your police/NBI clearance has been approved." });
     res.json({ message: "Clearance approved", badgeLevel: user.badgeLevel });
   } catch (error) { next(error); }
 }
@@ -97,7 +98,7 @@ export async function rejectClearance(req, res, next) {
     user.clearanceStatus = "rejected";
     user.clearanceRejectedReason = reason;
     await user.save();
-
+    await createNotification({ recipient: user._id, sender: req.user._id, type: "clearance_rejected", message: reason });
     res.json({ message: "Clearance rejected" });
   } catch (error) { next(error); }
 }
@@ -131,6 +132,7 @@ export async function approveGovernmentId(req, res, next) {
     user.governmentId.verified = true;
     if (user.selfieVerified) { user.kycStatus = "approved"; user.kycRejectedReason = ""; }
     await refreshBadge(user);
+    await createNotification({ recipient: user._id, sender: req.user._id, type: "kyc_approved", message: "Your Government ID has been approved." });
     res.json({ message: "Government ID approved", badgeLevel: user.badgeLevel });
   } catch (error) { next(error); }
 }
@@ -145,6 +147,7 @@ export async function rejectGovernmentId(req, res, next) {
     user.kycStatus = "rejected";
     user.kycRejectedReason = reason;
     await user.save();
+    await createNotification({ recipient: user._id, sender: req.user._id, type: "kyc_rejected", message: reason });
     res.json({ message: "Government ID rejected" });
   } catch (error) { next(error); }
 }
@@ -158,6 +161,7 @@ export async function approveSelfie(req, res, next) {
     user.selfieVerified = true;
     if (user.governmentId?.verified) { user.kycStatus = "approved"; user.kycRejectedReason = ""; }
     await refreshBadge(user);
+    await createNotification({ recipient: user._id, sender: req.user._id, type: "selfie_approved", message: "Your selfie photo has been approved." });
     res.json({ message: "Selfie approved", badgeLevel: user.badgeLevel });
   } catch (error) { next(error); }
 }
@@ -173,6 +177,7 @@ export async function rejectSelfie(req, res, next) {
     user.kycStatus = "rejected";
     user.kycRejectedReason = reason;
     await user.save();
+    await createNotification({ recipient: user._id, sender: req.user._id, type: "selfie_rejected", message: reason });
     res.json({ message: "Selfie rejected" });
   } catch (error) { next(error); }
 }
@@ -236,6 +241,7 @@ export async function revokeUser(req, res, next) {
     user.isFreelancer = false;
     user.isVerified = false;
     await user.save();
+    await createNotification({ recipient: user._id, sender: req.user._id, type: "verification_revoked", message: reason || "Your verification has been revoked by an admin." });
 
     res.json({ message: "User verification revoked" });
   } catch (error) { next(error); }
@@ -305,6 +311,9 @@ export async function deletePost(req, res, next) {
   try {
     const post = await Post.findByIdAndDelete(req.params.id);
     if (!post) return res.status(404).json({ message: "Post not found" });
+    if (post.author) {
+      await createNotification({ recipient: post.author, sender: req.user._id, type: "post_removed", message: post.content ? `Your post "${post.content.slice(0, 60)}" was removed by an admin.` : "Your post was removed by an admin." });
+    }
     res.json({ message: "Post deleted" });
   } catch (error) { next(error); }
 }
@@ -357,6 +366,9 @@ export async function deleteReel(req, res, next) {
   try {
     const reel = await Reel.findByIdAndDelete(req.params.id);
     if (!reel) return res.status(404).json({ message: "Reel not found" });
+    if (reel.author) {
+      await createNotification({ recipient: reel.author, sender: req.user._id, type: "reel_removed", message: reel.description ? `Your reel "${reel.description.slice(0, 60)}" was removed by an admin.` : "Your reel was removed by an admin." });
+    }
     res.json({ message: "Reel deleted" });
   } catch (error) { next(error); }
 }

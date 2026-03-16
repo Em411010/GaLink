@@ -6,7 +6,7 @@ const notificationSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ["like_post", "like_reel", "comment_post", "match", "follow"],
+    enum: ["like_post", "like_reel", "comment_post", "match", "follow", "kyc_approved", "kyc_rejected", "selfie_approved", "selfie_rejected", "clearance_approved", "clearance_rejected", "verification_revoked", "post_removed", "reel_removed"],
   },
   // Optional references depending on notification type
   post: { type: mongoose.Schema.Types.ObjectId, ref: "Post", default: null },
