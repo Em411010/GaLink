@@ -3,16 +3,21 @@
   "version": "1.0.0",
   "description": "GaLink - Filipino Freelancer Discovery Platform",
   "private": true,
-  "workspaces": ["web", "backend", "shared"],
+  "workspaces": [
+    "web",
+    "backend",
+    "shared"
+  ],
   "scripts": {
     "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=web\"",
     "dev:backend": "npm run dev --workspace=backend",
     "dev:web": "npm run dev --workspace=web",
     "build": "npm run build --workspace=web",
-    "start": "node backend/src/app.js"
+    "start": "cross-env NODE_ENV=production node backend/src/app.js"
   },
   "devDependencies": {
     "concurrently": "^8.2.2",
+    "cross-env": "^10.1.0",
     "rimraf": "^5.0.5"
   },
   "engines": {
