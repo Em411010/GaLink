@@ -1,0 +1,121 @@
+import { Link } from "react-router-dom";
+import { Star, MapPin, MessageCircle, Briefcase } from "lucide-react";
+import { UserBadges } from "../badge/BadgeSystem";
+
+export default function FreelancerCard({ freelancer }) {
+  const matchScore = freelancer.matchScore;
+  const matchColor =
+    matchScore >= 80 ? "badge-success" :
+    matchScore >= 55 ? "badge-primary" :
+    "badge-warning";
+
+  return (
+    <div className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow border border-base-200">
+      <div className="card-body p-4 gap-2">
+
+        {/* ── Header: avatar + name + match pill ── */}
+        <div className="flex items-start gap-3">
+          {/* Avatar */}
+          <div className="avatar shrink-0">
+            <div className="w-11 rounded-full ring ring-primary/20">
+              {freelancer.profilePhoto ? (
+                <img src={freelancer.profilePhoto} alt={freelancer.name} />
+              ) : (
+                <div className="bg-primary text-primary-content flex items-center justify-center w-full h-full text-base font-bold rounded-full">
+                  {freelancer.name?.charAt(0).toUpperCase()}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Name + rating */}
+          <div className="flex-1 min-w-0">
+            <Link
+              to={`/user/${freelancer._id}`}
+              className="font-semibold text-sm leading-tight hover:text-primary transition-colors line-clamp-1"
+            >
+              {freelancer.name}
+            </Link>
+            <UserBadges user={freelancer} size="xs" />
+            <div className="flex items-center gap-1 mt-0.5">
+              <Star size={12} className="text-warning" fill="currentColor" />
+              <span className="text-xs font-medium">
+                {freelancer.averageRating?.toFixed(1) || "0.0"}
+              </span>
+              <span className="text-xs text-base-content/40">
+                ({freelancer.totalRatings || 0})
+              </span>
+            </div>
+          </div>
+
+          {/* Match badge — shrink-0 so it never wraps or squishes */}
+          {matchScore !== undefined && (
+            <span
+              className={`badge ${matchColor} badge-sm shrink-0 whitespace-nowrap font-semibold`}
+            >
+              {matchScore}% match
+            </span>
+          )}
+        </div>
+
+        {/* ── Bio ── */}
+        {freelancer.bio && (
+          <p className="text-xs text-base-content/60 line-clamp-2 leading-relaxed">
+            {freelancer.bio}
+          </p>
+        )}
+
+        {/* ── Skills ── */}
+        {freelancer.skills?.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {freelancer.skills.slice(0, 4).map((skill, i) => (
+              <span key={i} className="badge badge-outline badge-xs py-2">
+                {skill}
+              </span>
+            ))}
+            {freelancer.skills.length > 4 && (
+              <span className="badge badge-ghost badge-xs py-2">
+                +{freelancer.skills.length - 4} more
+              </span>
+            )}
+          </div>
+        )}
+
+        {/* ── Meta: location + experience ── */}
+        <div className="flex items-center gap-3 text-xs text-base-content/50">
+          {freelancer.location?.address && (
+            <span className="flex items-center gap-1 truncate">
+              <MapPin size={11} className="shrink-0" />
+              <span className="truncate">{freelancer.location.address.split(",")[0]}</span>
+            </span>
+          )}
+          {freelancer.experience > 0 && (
+            <span className="flex items-center gap-1 shrink-0">
+              <Briefcase size={11} />
+              {freelancer.experience}y exp
+            </span>
+          )}
+        </div>
+
+        {/* ── Actions ── */}
+        <div className="flex gap-2 mt-1">
+          <Link
+            to={`/user/${freelancer._id}`}
+            className="btn btn-ghost btn-xs flex-1 border border-base-300"
+          >
+            View Profile
+          </Link>
+          <Link
+            to={`/messages?userId=${freelancer._id}`}
+            className="btn btn-primary btn-xs flex-1 gap-1"
+          >
+            <MessageCircle size={12} />
+            Message
+          </Link>
+        </div>
+
+      </div>
+    </div>
+  );
+}
+

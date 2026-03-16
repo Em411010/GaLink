@@ -1,0 +1,10 @@
+﻿import { Router } from "express";
+import { getReels, createReel, likeReel } from "../controllers/reel.controller.js";
+import { protect } from "../middleware/auth.middleware.js";
+import { requireBadge } from "../middleware/badge.middleware.js";
+import { videoUpload } from "../config/cloudinary.js";
+const router = Router();
+router.get("/", protect, getReels);
+router.post("/", protect, requireBadge(2), videoUpload.single("video"), createReel);
+router.post("/:id/like", protect, likeReel);
+export default router;

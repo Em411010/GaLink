@@ -1,0 +1,20 @@
+{
+  "name": "galink",
+  "version": "1.0.0",
+  "description": "GaLink - Filipino Freelancer Discovery Platform",
+  "private": true,
+  "workspaces": ["web", "backend", "shared"],
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace=backend\" \"npm run dev --workspace=web\"",
+    "dev:backend": "npm run dev --workspace=backend",
+    "dev:web": "npm run dev --workspace=web",
+    "build": "npm run build --workspace=web"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "rimraf": "^5.0.5"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
