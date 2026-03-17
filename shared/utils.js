@@ -19,10 +19,37 @@ export function timeAgo(date) {
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 }
-export function calculateMatchScore(requiredSkills, freelancerSkills) {
+export function calculateMatchScore(requiredSkills, freelancerSkills, options = {}) {
   if (!requiredSkills?.length || !freelancerSkills?.length) return 0;
-  const req = requiredSkills.map((s) => s.toLowerCase());
-  const frl = freelancerSkills.map((s) => s.toLowerCase());
+
+  const { badgeLevel = 0, completedJobs = 0, averageRating = 0, budget = 0, hourlyRate = 0 } = options;
+
+  // ── Skill matching (60% of total) ──────────────────────────
+  const req = requiredSkills.map((s) => s.toLowerCase().trim());
+  const frl = freelancerSkills.map((s) => s.toLowerCase().trim());
   const matches = req.filter((s) => frl.some((f) => f.includes(s) || s.includes(f)));
-  return Math.round((matches.length / req.length) * 100);
+  const skillScore = (matches.length / req.length) * 60;
+
+  // ── Badge level bonus (15% of total) ───────────────────────
+  const badgeScore = badgeLevel >= 3 ? 15 : badgeLevel >= 2 ? 10 : badgeLevel >= 1 ? 5 : 0;
+
+  // ── Track record bonus (15% of total) ──────────────────────
+  const ratingBonus = Math.min(averageRating, 5) / 5 * 8;
+  const jobBonus = Math.min(completedJobs, 50) / 50 * 7;
+  const trackScore = ratingBonus + jobBonus;
+
+  // ── Budget fit (10% of total) ──────────────────────────────
+  let budgetScore = 5; // neutral if no budget/rate info
+  if (budget > 0 && hourlyRate > 0) {
+    if (hourlyRate <= budget) {
+      budgetScore = 10; // within budget
+    } else if (hourlyRate <= budget * 1.3) {
+      budgetScore = 5;  // slightly over
+    } else {
+      budgetScore = 0;  // too expensive
+    }
+  }
+
+  const total = Math.round(skillScore + badgeScore + trackScore + budgetScore);
+  return Math.min(total, 100);
 }

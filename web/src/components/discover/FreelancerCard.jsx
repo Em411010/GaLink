@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Star, MapPin, MessageCircle, Briefcase } from "lucide-react";
+import { Star, MapPin, MessageCircle, Briefcase, DollarSign, CheckCircle } from "lucide-react";
 import { UserBadges } from "../badge/BadgeSystem";
 
 export default function FreelancerCard({ freelancer }) {
@@ -81,18 +81,30 @@ export default function FreelancerCard({ freelancer }) {
           </div>
         )}
 
-        {/* ── Meta: location + experience ── */}
-        <div className="flex items-center gap-3 text-xs text-base-content/50">
+        {/* ── Meta: location + experience + rate ── */}
+        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/50">
           {freelancer.location?.address && (
             <span className="flex items-center gap-1 truncate">
               <MapPin size={11} className="shrink-0" />
               <span className="truncate">{freelancer.location.address.split(",")[0]}</span>
             </span>
           )}
-          {freelancer.experience > 0 && (
+          {freelancer.yearsOfExperience > 0 && (
             <span className="flex items-center gap-1 shrink-0">
               <Briefcase size={11} />
-              {freelancer.experience}y exp
+              {freelancer.yearsOfExperience}y exp
+            </span>
+          )}
+          {freelancer.hourlyRate > 0 && (
+            <span className="flex items-center gap-1 shrink-0">
+              <DollarSign size={11} />
+              ₱{freelancer.hourlyRate}/hr
+            </span>
+          )}
+          {freelancer.completedJobs > 0 && (
+            <span className="flex items-center gap-1 shrink-0">
+              <CheckCircle size={11} />
+              {freelancer.completedJobs} jobs
             </span>
           )}
         </div>

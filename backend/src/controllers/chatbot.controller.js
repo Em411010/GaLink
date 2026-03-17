@@ -20,6 +20,7 @@ export async function interpretUserProblem(req, res, next) {
       urgencyLevel: interpretation.urgencyLevel,
       locationRelevant: interpretation.locationRelevant,
       userLocation: req.user?.location,
+      budget: interpretation.estimatedBudget || 0,
     });
 
     // Store chatbot query for personalization
