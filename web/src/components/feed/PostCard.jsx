@@ -1,4 +1,5 @@
 ﻿import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Heart, MessageCircle, Trash2, MapPin, Send, ChevronDown, ChevronUp, CornerDownRight } from "lucide-react";
 import { feedAPI } from "../../services/api";
 import useAuthStore from "../../store/useAuthStore";
@@ -97,7 +98,7 @@ export default function PostCard({ post, onDelete, initialShowComments = false }
       <div className="card-body p-4">
         {/* Author header */}
         <div className="flex items-start gap-3">
-          <div className="avatar shrink-0">
+          <Link to={`/profile/${post.author?._id}`} className="avatar shrink-0 hover:opacity-80 transition-opacity">
             <div className="w-10 rounded-full">
               {post.author?.profilePhoto ? (
                 <img src={post.author.profilePhoto} alt={post.author.name} />
@@ -107,11 +108,11 @@ export default function PostCard({ post, onDelete, initialShowComments = false }
                 </div>
               )}
             </div>
-          </div>
+          </Link>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <span className="font-semibold text-sm">{post.author?.name}</span>
+                <Link to={`/profile/${post.author?._id}`} className="font-semibold text-sm hover:underline">{post.author?.name}</Link>
                 {post.author?.badgeLevel > 0 || post.author?.isHirer
                   ? <UserBadges user={post.author} size="xs" />
                   : null}
