@@ -57,20 +57,22 @@ Rules:
 
 1. "needsService" = FALSE when the user says the problem is resolved, they no longer need help, or they're just wrapping up the conversation. Phrases: "ok na", "ayos na", "nayos ko na", "never mind", "forget it", "di na kailangan", "thanks anyway", "solved na", "maayos na". For these, write a warm, genuine empathyLine that celebrates their resolution and leaves the door open. Leave all other fields as defaults.
 
-2. "isGeneric" = TRUE in TWO situations:
+2. "isGeneric" = TRUE ONLY when the message is so vague you literally CANNOT determine a single trade/profession. Examples:
+   - "help", "tulong", "may problema", "kailangan ko ng tao", "need someone" — no clue what kind of service
+   - "may sira" / "something is broken" — broken what? No way to pick a trade
+   - "may problema sa bahay" / "house problem" — could be anything
+   - "may problema sa trabaho" / "work problem" — could be anything
 
-   A) The message is completely vague with no category at all: "help", "tulong", "may problema", "kailangan ko ng tao", "may issue", "need someone", single-word or two-word messages with no context.
-
-   B) The message names a BROAD CATEGORY but NOT the specific problem. You cannot pick a skill or trade without asking more. Examples of broad-category-but-still-generic messages:
-      - "may problema sa bahay" / "house problem" / "may sira sa bahay ko" → house is huge: could be electrical, plumbing, roofing, carpentry, painting, pest control, etc.
-      - "may problema sa kuryente" → still broad: is it a tripped breaker, broken outlet, no power in one room, flickering lights, short circuit?
-      - "may tubig" / "water problem" → is it a leaking pipe, low pressure, no hot water, flooding, clogged drain?
-      - "may sira sa sasakyan" / "car problem" → engine, brakes, aircon, tires, electrical?
-      - "may problema sa trabaho" / "work problem" / "office problem" → IT, HR, legal, design?
-      - "may sira" → broken what exactly?
-      - "need repair" → repair of what?
-      - "something is broken at home" → broken what?
-      - Any message where you could name 3+ completely different trades that might apply.
+   "isGeneric" = FALSE (proceed with matching) when the user mentions ANY recognizable trade, service, or specific task. Even if details are missing, you CAN identify the trade. Examples that are NOT generic:
+   - "need a painter" / "paint my walls" / "painting" → Painting (NOT generic!)
+   - "may problema sa kuryente" / "electrical issue" → Electrical
+   - "plumbing problem" / "leaking pipe" / "clogged drain" → Plumbing
+   - "need a carpenter" / "fix my door" → Carpentry
+   - "aircon not working" / "AC repair" → Aircon Repair
+   - "car won't start" / "brake problem" → Automotive Mechanic
+   - "build a website" / "web developer" → Web Development
+   - "need a tutor" / "math tutoring" → Tutoring
+   RULE: If you can name ONE specific trade, it is NOT generic. Set isGeneric=false and put that trade in requiredSkills.
 
    For ALL isGeneric=true cases, write a warm clarificationQuestion that:
       - First, genuinely acknowledges their situation with warmth (don't skip this!)
@@ -94,11 +96,10 @@ Rules:
      * "Running a business and dealing with a POS breakdown at the same time is so much to handle. Let's get you the right tech right away!"
 
 Examples:
-<<<<<<< HEAD
-- "may problema sa bahay" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Oh no, house problems can really throw off your whole day! To make sure I find exactly the right person for you, can you tell me what's specifically happening? Is it something like a leaking pipe, an electrical issue, a broken door or ceiling, pest problems, or something else? Just describe what you're seeing and I'll take it from there!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
-- "may sira sa kuryente" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Electrical issues can be really worrying, I completely understand! To connect you with the right electrician, could you tell me a little more about what's happening? For example, is it a tripped breaker, a dead outlet, flickering lights, or no power in a specific room?","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
-- "help" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Of course, I'm right here with you! To make sure I find exactly the right person, could you tell me a little more about what's going on? Is it something at home — like a repair or plumbing issue — or more of a professional service like tech or design? Just tell me in your own words, no worries!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
-- "ayos na, salamat" → {"needsService":false,"isGeneric":false,"clarificationQuestion":"","empathyLine":"That's wonderful to hear! You took care of it — that's great. We're always here whenever you need a hand with anything.","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
+- "may problema sa bahay" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Oh no, house problems can really throw off your whole day! To make sure I find exactly the right person for you, can you tell me what's specifically happening? Is it something like a leaking pipe, an electrical issue, a broken door or ceiling, pest problems, or something else? Just describe what you're seeing and I'll take it from there!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
+- "may sira sa kuryente" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Electrical issues can be really worrying, I completely understand! To connect you with the right electrician, could you tell me a little more about what's happening? For example, is it a tripped breaker, a dead outlet, flickering lights, or no power in a specific room?","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
+- "help" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Of course, I'm right here with you! To make sure I find exactly the right person, could you tell me a little more about what's going on? Is it something at home — like a repair or plumbing issue — or more of a professional service like tech or design? Just tell me in your own words, no worries!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
+- "ayos na, salamat" → {"needsService":false,"isGeneric":false,"clarificationQuestion":"","empathyLine":"That's wonderful to hear! You took care of it — that's great. We're always here whenever you need a hand with anything.","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
 SKILL NORMALIZATION RULE:
 For "requiredSkills", ONLY use broad trade/profession labels — never specific sub-tasks or task descriptions. Match to the TRADE, not the task. Keep to 1–2 labels max.
 Examples of correct normalization:
@@ -113,15 +114,8 @@ Examples of correct normalization:
 - Math/English tutoring, academic coaching → ["Tutoring"]
 NEVER output sub-tasks as skills. Wrong: ["Door Repair","Pipe Fitting","Leak Detection"]. Right: ["Carpentry"], ["Plumbing"].
 
-- "My sink has been leaking nonstop since yesterday" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"A non-stop leaking sink is so stressful — the constant dripping and worry about water damage is a lot to deal with overnight. Let's get this sorted for you right away!","problemType":"Plumbing repair","requiredSkills":["Plumbing"],"urgencyLevel":"HIGH","locationRelevant":true,"summary":"Leaking sink repair"}${languageOverride}`;
-=======
-- "may problema sa bahay" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Oh no, house problems can really throw off your whole day! To make sure I find exactly the right person for you, can you tell me what's specifically happening? Is it something like a leaking pipe, an electrical issue, a broken door or ceiling, pest problems, or something else? Just describe what you're seeing and I'll take it from there!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
-- "may sira sa kuryente" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Electrical issues can be really worrying, I completely understand! To connect you with the right electrician, could you tell me a little more about what's happening? For example, is it a tripped breaker, a dead outlet, flickering lights, or no power in a specific room?","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
-- "help" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Of course, I'm right here with you! To make sure I find exactly the right person, could you tell me a little more about what's going on? Is it something at home — like a repair or plumbing issue — or more of a professional service like tech or design? Just tell me in your own words, no worries!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
-- "ayos na, salamat" → {"needsService":false,"isGeneric":false,"clarificationQuestion":"","empathyLine":"That's wonderful to hear! You took care of it — that's great. We're always here whenever you need a hand with anything.","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
-- "My sink has been leaking nonstop since yesterday" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"A non-stop leaking sink is so stressful — the constant dripping and worry about water damage is a lot to deal with overnight. Let's get this sorted for you right away!","problemType":"Plumbing repair","requiredSkills":["Plumbing","Pipe Fitting","Leak Detection"],"urgencyLevel":"HIGH","locationRelevant":true,"estimatedBudget":0,"summary":"Leaking sink repair"}
-- "Need a plumber urgently, budget is around ₱5k" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"Plumbing emergencies are never fun, especially when you need someone right away. Let me find you a reliable plumber ASAP!","problemType":"Plumbing repair","requiredSkills":["Plumbing","Pipe Fitting"],"urgencyLevel":"HIGH","locationRelevant":true,"estimatedBudget":5000,"summary":"Urgent plumbing repair"}${languageOverride}`;
->>>>>>> eab07a9708354b3068450ba6a6cd1bce8b9e3301
+- "My sink has been leaking nonstop since yesterday" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"A non-stop leaking sink is so stressful — the constant dripping and worry about water damage is a lot to deal with overnight. Let's get this sorted for you right away!","problemType":"Plumbing repair","requiredSkills":["Plumbing"],"urgencyLevel":"HIGH","locationRelevant":true,"estimatedBudget":0,"summary":"Leaking sink repair"}
+- "Need a plumber urgently, budget is around ₱5k" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"Plumbing emergencies are never fun, especially when you need someone right away. Let me find you a reliable plumber ASAP!","problemType":"Plumbing repair","requiredSkills":["Plumbing"],"urgencyLevel":"HIGH","locationRelevant":true,"estimatedBudget":5000,"summary":"Urgent plumbing repair"}${languageOverride}`;
 
   const completion = await getOpenAI().chat.completions.create({
     model: "gpt-3.5-turbo",
@@ -354,5 +348,41 @@ Respond ONLY with a valid JSON array of exactly 5 objects:
     return Array.isArray(parsed) ? parsed.slice(0, 5) : [];
   } catch {
     return [];
+  }
+}
+
+/**
+ * Batch-estimate distances between a user's location and a list of freelancer locations
+ * using GPT knowledge of Philippine geography. Returns a Map of index → km.
+ */
+export async function estimateDistancesBatch(userLocation, freelancerLocations) {
+  if (!userLocation || freelancerLocations.length === 0) return new Map();
+  const list = freelancerLocations.map((loc, i) => `${i}: ${loc}`).join("\n");
+  const systemPrompt = `You are a Philippine geography expert. Given a user's location and a numbered list of freelancer locations, estimate the road/travel distance in km between the user and each freelancer.
+
+Return ONLY a valid JSON object where keys are the index numbers (as strings) and values are the estimated distance in km (integer).
+Example: {"0": 5, "1": 120, "2": 45}
+
+Be as accurate as possible using your knowledge of Philippine cities, municipalities, and provinces. If two locations are in the same municipality, return a small number like 1-5. Same province but different city: typically 10-80 km. Different provinces: estimate realistically.`;
+
+  try {
+    const completion = await getOpenAI().chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `User location: ${userLocation}\n\nFreelancer locations:\n${list}` },
+      ],
+      temperature: 0,
+      max_tokens: 500,
+    });
+    const raw = completion.choices[0]?.message?.content || "{}";
+    const parsed = JSON.parse(raw);
+    const result = new Map();
+    for (const [key, val] of Object.entries(parsed)) {
+      result.set(parseInt(key), typeof val === "number" ? Math.round(val) : parseInt(val) || undefined);
+    }
+    return result;
+  } catch {
+    return new Map();
   }
 }

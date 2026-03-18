@@ -84,6 +84,13 @@ export const notificationAPI = {
   markOneRead: (id) => api.put(`/notifications/${id}/read`),
 };
 
+// Contracts
+export const contractAPI = {
+  getUserContracts: (userId) => api.get(`/contracts/user/${userId}`),
+  createContract: (data) => api.post("/contracts", data),
+  updateStatus: (id, status) => api.put(`/contracts/${id}/status`, { status }),
+};
+
 // Verification / Badge
 export const verificationAPI = {
   getStatus: () => api.get("/verification/status"),
@@ -93,6 +100,7 @@ export const verificationAPI = {
   uploadSelfie: (formData) => api.post("/verification/selfie", formData),
   uploadClearance: (formData) => api.post("/verification/clearance", formData),
   addPortfolio: (formData) => api.post("/verification/portfolio", formData),
+  updatePortfolio: (itemId, formData) => api.patch(`/verification/portfolio/${itemId}`, formData),
   removePortfolio: (itemId) => api.delete(`/verification/portfolio/${itemId}`),
 };
 

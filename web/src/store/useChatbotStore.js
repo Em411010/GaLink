@@ -91,14 +91,16 @@ const useChatbotStore = create(
   isLoading: false,
   phase: "idle",                 // 'idle' | 'confirming' | 'clarifying'
   clarifyingContext: "",         // original vague message, combined with follow-up for re-interpretation
+  clarifyRounds: 0,              // how many times we've asked for clarification (capped at 1)
   forceTaglish: false,           // legacy — replaced by detectedDialect
   detectedDialect: null,         // null | 'taglish' | 'cebuano' — set after 2nd user message
   userMessageCount: 0,           // tracks how many messages the user has sent
 
-  sendMessage: async (userMessage) => {
+  sendMessage: async (userMessage, meta = {}) => {
     const { phase, pendingInterpretation, pendingRecommendations, clarifyingContext } = get();
     const currentMessages = get().messages;
-    const newMessages = [...currentMessages, { role: "user", content: userMessage }];
+    const newUserMsg = { role: "user", content: userMessage, ...meta };
+    const newMessages = [...currentMessages, newUserMsg];
 
     // Track user message count; detect language on every message until dialect is identified
     const newCount = get().userMessageCount + 1;
@@ -131,6 +133,7 @@ const useChatbotStore = create(
         pendingInterpretation: null,
         pendingRecommendations: [],
         phase: "idle",
+        clarifyRounds: 0,
         isLoading: false,
       });
       return;
@@ -157,13 +160,13 @@ const useChatbotStore = create(
           return;
         }
 
-        // If still generic after clarification, ask once more kindly
+        // If still generic after clarification, force proceed — never ask more than once
         if (interpretation.isGeneric) {
-          const q = interpretation.clarificationQuestion
-            ? interpretation.clarificationQuestion.replace(/[*_#`]/g, "").trim()
-            : "Could you describe a bit more specifically what's wrong? The more details you share, the better I can match you with the right person!";
-          set({ messages: [...newMessages, { role: "assistant", content: q }], phase: "clarifying", clarifyingContext: combinedMessage, isLoading: false });
-          return;
+          // Override: treat it as a valid request with whatever skills we can infer
+          interpretation.isGeneric = false;
+          if (!interpretation.requiredSkills?.length) {
+            interpretation.requiredSkills = ["General Repair"];
+          }
         }
 
         const skillList = interpretation.requiredSkills?.join(", ") || "general skills";
@@ -217,18 +220,26 @@ const useChatbotStore = create(
         return;
       }
 
-      // ── Case B: problem is too generic — ask a clarifying question ──
-      if (interpretation.isGeneric) {
+      // ── Case B: problem is too generic — ask a clarifying question (only once) ──
+      if (interpretation.isGeneric && get().clarifyRounds === 0) {
         const q = interpretation.clarificationQuestion
           ? interpretation.clarificationQuestion.replace(/[*_#`]/g, "").trim()
           : "Could you describe your problem in a bit more detail so I can find the right person for you?";
         set({
           messages: [...newMessages, { role: "assistant", content: q }],
           phase: "clarifying",
-          clarifyingContext: userMessage,   // save original message for combined re-interpretation
+          clarifyingContext: userMessage,
+          clarifyRounds: 1,
           isLoading: false,
         });
         return;
+      }
+      // If generic but already asked once, force-proceed
+      if (interpretation.isGeneric) {
+        interpretation.isGeneric = false;
+        if (!interpretation.requiredSkills?.length) {
+          interpretation.requiredSkills = ["General Repair"];
+        }
       }
 
       // ── Case C: clear problem — empathise then soft-confirm ──
@@ -296,6 +307,7 @@ const useChatbotStore = create(
       forceTaglish: false,
       detectedDialect: null,
       userMessageCount: 0,
+      clarifyRounds: 0,
     }),
 }),
 {

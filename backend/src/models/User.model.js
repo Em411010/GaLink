@@ -31,7 +31,7 @@ const userSchema = new mongoose.Schema({
   resumeUrl: { type: String, default: "" },
   resumeText: { type: String, default: "" },
   resumeUploadedAt: { type: Date, default: null },
-  portfolio: [{ title: String, description: String, imageUrl: String, link: String }],
+  portfolio: [{ title: String, description: String, imageUrl: String, link: String, tags: [String] }],
 
   // ── Verification / Badge System ──────────────────────────────────────────
   badgeLevel: { type: Number, default: 0, min: 0, max: 3 },

@@ -3,12 +3,14 @@ import useChatbotStore from "../store/useChatbotStore";
 import useAuthStore from "../store/useAuthStore";
 import FreelancerCard from "../components/discover/FreelancerCard";
 import { AccessGate } from "../components/badge/BadgeSystem";
-import { Send, Trash2, Bot, User } from "lucide-react";
+import { Send, Trash2, Bot, User, MapPin } from "lucide-react";
+import useGeoLocation from "../hooks/useGeoLocation";
 
 export default function ChatbotPage() {
   const { user } = useAuthStore();
   const { messages, recommendations, isLoading, sendMessage, clearChat, phase } =
     useChatbotStore();
+  const { locationString } = useGeoLocation();
   const [input, setInput] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const messagesEndRef = useRef(null);
@@ -17,10 +19,15 @@ export default function ChatbotPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const buildMeta = () => ({
+    location: locationString || undefined,
+    timestamp: new Date().toISOString(),
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-    sendMessage(input.trim());
+    sendMessage(input.trim(), buildMeta());
     setInput("");
   };
 
@@ -98,6 +105,24 @@ export default function ChatbotPage() {
                         {msg.content}
                       </div>
                     </div>
+                    {msg.role === "user" && (msg.timestamp || msg.location) && (
+                      <div className="chat-footer text-xs opacity-40 flex flex-wrap items-center gap-1 mt-0.5">
+                        {msg.timestamp && (
+                          <>
+                            <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                            <span>·</span>
+                            <span>{new Date(msg.timestamp).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}</span>
+                          </>
+                        )}
+                        {msg.location && (
+                          <>
+                            <span>·</span>
+                            <MapPin size={9} />
+                            <span>{msg.location}</span>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
                 {isLoading && (
@@ -124,7 +149,7 @@ export default function ChatbotPage() {
                       key={chip}
                       type="button"
                       className="btn btn-sm btn-outline rounded-full text-xs"
-                      onClick={() => sendMessage(chip)}
+                      onClick={() => sendMessage(chip, buildMeta())}
                     >
                       {chip}
                     </button>

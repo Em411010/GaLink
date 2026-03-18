@@ -3,7 +3,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { messageAPI, userAPI } from "../services/api";
 import useAuthStore from "../store/useAuthStore";
 import toast from "react-hot-toast";
-import { Send, Paperclip, X, Reply, Trash2, ExternalLink, ArrowLeft } from "lucide-react";
+import { Send, Paperclip, X, Reply, Trash2, ExternalLink, ArrowLeft, MapPin } from "lucide-react";
 import { io } from "socket.io-client";
 import { AccessGate } from "../components/badge/BadgeSystem";
 import { UserBadges } from "../components/badge/BadgeSystem";
@@ -416,6 +416,12 @@ export default function MessagesPage() {
                   <p className="text-xs text-base-content/50">
                     {isOnline(activeOther._id) ? "Online" : "Offline"}
                   </p>
+                  {activeOther.location && (
+                    <p className="text-xs text-base-content/40 flex items-center gap-1 mt-0.5">
+                      <MapPin size={10} />
+                      {activeOther.location}
+                    </p>
+                  )}
                 </div>
               </button>
               <a
@@ -495,8 +501,17 @@ export default function MessagesPage() {
                       )}
                     </div>
 
-                    <div className="chat-footer text-xs opacity-50 flex items-center gap-1">
-                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    <div className="chat-footer text-xs opacity-50 flex flex-wrap items-center gap-1">
+                      <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                      <span>·</span>
+                      <span>{new Date(msg.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}</span>
+                      {(isMine ? user?.location : activeOther?.location) && (
+                        <>
+                          <span>·</span>
+                          <MapPin size={9} />
+                          <span>{isMine ? user.location : activeOther.location}</span>
+                        </>
+                      )}
                       {isMine && isLastSeenMsg && <span className="text-primary font-medium">• Seen</span>}
                     </div>
                   </div>

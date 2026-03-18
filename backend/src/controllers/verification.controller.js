@@ -113,14 +113,36 @@ export async function uploadClearance(req, res, next) {
 // POST /api/verification/portfolio — add portfolio item
 export async function addPortfolioItem(req, res, next) {
   try {
-    const { title, description, link } = req.body;
+    const { title, description, link, tags } = req.body;
     if (!title) return res.status(400).json({ message: "Title is required" });
     const user = await User.findById(req.user._id);
-    const item = { title, description: description || "", link: link || "" };
+    const parsedTags = tags
+      ? (Array.isArray(tags) ? tags : tags.split(",").map((t) => t.trim()).filter(Boolean))
+      : [];
+    const item = { title, description: description || "", link: link || "", tags: parsedTags };
     if (req.file) item.imageUrl = req.file.path;
     user.portfolio.push(item);
     await refreshBadge(user);
     res.json({ badgeLevel: user.badgeLevel, portfolio: user.portfolio });
+  } catch (error) { next(error); }
+}
+
+// PATCH /api/verification/portfolio/:itemId — update portfolio item
+export async function updatePortfolioItem(req, res, next) {
+  try {
+    const { title, description, link, tags } = req.body;
+    const user = await User.findById(req.user._id);
+    const item = user.portfolio.id(req.params.itemId);
+    if (!item) return res.status(404).json({ message: "Portfolio item not found" });
+    if (title) item.title = title;
+    if (description !== undefined) item.description = description;
+    if (link !== undefined) item.link = link;
+    if (tags !== undefined) {
+      item.tags = Array.isArray(tags) ? tags : tags.split(",").map((t) => t.trim()).filter(Boolean);
+    }
+    if (req.file) item.imageUrl = req.file.path;
+    await user.save();
+    res.json({ portfolio: user.portfolio });
   } catch (error) { next(error); }
 }
 

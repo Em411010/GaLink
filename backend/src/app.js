@@ -19,6 +19,7 @@ import matchRoutes from "./routes/match.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import verificationRoutes from "./routes/verification.routes.js";
 import adminRoutes from "./routes/admin.routes.js";
+import contractRoutes from "./routes/contract.routes.js";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const app = express();
@@ -38,6 +39,7 @@ app.use("/api/ratings", ratingRoutes);
 app.use("/api/matches", matchRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/verification", verificationRoutes);
+app.use("/api/contracts", contractRoutes);
 app.use("/api/admin", adminRoutes);
 if (process.env.NODE_ENV === "production") {
   app.use(express.static(path.join(__dirname, "..", "dist")));

@@ -134,9 +134,33 @@ export async function toggleAvailability(req, res, next) {
 
 export async function updateLocation(req, res, next) {
   try {
-    const { lat, lng, address } = req.body;
+    let { lat, lng, address } = req.body;
     if (typeof lat !== "number" || typeof lng !== "number") {
       return res.status(400).json({ message: "lat and lng must be numbers" });
+    }
+
+    // Determine if we need to forward-geocode:
+    // 1. Coords are placeholder (0,0)
+    // 2. Address says Philippines but coords are outside PH bounding box
+    const needsGeocode = address && (
+      (lat === 0 && lng === 0) ||
+      (/philippines/i.test(address) && (lat < 4 || lat > 22 || lng < 115 || lng > 130))
+    );
+
+    if (needsGeocode) {
+      try {
+        const geoRes = await fetch(
+          `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}&limit=1`,
+          { headers: { "User-Agent": "GaLink/1.0" } }
+        );
+        const geoData = await geoRes.json();
+        if (geoData[0]) {
+          lat = parseFloat(geoData[0].lat);
+          lng = parseFloat(geoData[0].lon);
+        }
+      } catch {
+        // geocoding failed — keep provided coords
+      }
     }
     const update = {
       coords: { type: "Point", coordinates: [lng, lat] },

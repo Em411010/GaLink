@@ -42,16 +42,22 @@ export default function App() {
 
   useEffect(() => { fetchMe(); }, []);
 
-  // Keep user's GPS location up to date whenever they are logged in
+  // Keep user's GPS location up to date — only if coords are inside the Philippines
   useEffect(() => {
     if (!user || locationSent.current) return;
     if (!navigator.geolocation) return;
     locationSent.current = true;
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
-        userAPI.updateLocation({ lat: coords.latitude, lng: coords.longitude }).catch(() => {});
+        const { latitude: lat, longitude: lng } = coords;
+        const inPH = lat >= 4 && lat <= 22 && lng >= 115 && lng <= 130;
+        if (inPH) {
+          userAPI.updateLocation({ lat, lng }).catch(() => {});
+        } else {
+          locationSent.current = false; // allow retry if user moves to PH
+        }
       },
-      () => { locationSent.current = false; }, // reset so it can retry later
+      () => { locationSent.current = false; },
       { timeout: 8000, maximumAge: 300000 }
     );
   }, [user]);

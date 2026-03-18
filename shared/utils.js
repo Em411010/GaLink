@@ -19,7 +19,6 @@ export function timeAgo(date) {
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
 }
-<<<<<<< HEAD
 // Broad trade category map — sub-skills/tasks map to their parent trade
 const SKILL_CATEGORIES = {
   carpentry:   ["carpentry","carpenter","woodworking","furniture","cabinet","door repair","window repair","joinery","wood carving","framing","trim work"],
@@ -67,19 +66,6 @@ export function calculateDistance(lat1, lng1, lat2, lng2) {
   return Math.round(R * c * 10) / 10;
 }
 
-export function calculateMatchScore(requiredSkills, freelancerSkills) {
-  if (!requiredSkills?.length || !freelancerSkills?.length) return 0;
-  const req = requiredSkills.map((s) => s.toLowerCase());
-  const frl = freelancerSkills.map((s) => s.toLowerCase());
-  const matches = req.filter((reqSkill) => {
-    // 1. Direct substring match
-    if (frl.some((f) => f.includes(reqSkill) || reqSkill.includes(f))) return true;
-    // 2. Category-based match — e.g. "door repair" → carpentry matches freelancer with "carpentry"
-    const reqCat = getSkillCategory(reqSkill);
-    return reqCat !== null && frl.some((f) => getSkillCategory(f) === reqCat);
-  });
-  return Math.round((matches.length / req.length) * 100);
-=======
 export function calculateMatchScore(requiredSkills, freelancerSkills, options = {}) {
   if (!requiredSkills?.length || !freelancerSkills?.length) return 0;
 
@@ -88,7 +74,11 @@ export function calculateMatchScore(requiredSkills, freelancerSkills, options = 
   // ── Skill matching (60% of total) ──────────────────────────
   const req = requiredSkills.map((s) => s.toLowerCase().trim());
   const frl = freelancerSkills.map((s) => s.toLowerCase().trim());
-  const matches = req.filter((s) => frl.some((f) => f.includes(s) || s.includes(f)));
+  const matches = req.filter((reqSkill) => {
+    if (frl.some((f) => f.includes(reqSkill) || reqSkill.includes(f))) return true;
+    const reqCat = getSkillCategory(reqSkill);
+    return reqCat !== null && frl.some((f) => getSkillCategory(f) === reqCat);
+  });
   const skillScore = (matches.length / req.length) * 60;
 
   // ── Badge level bonus (15% of total) ───────────────────────
@@ -113,5 +103,4 @@ export function calculateMatchScore(requiredSkills, freelancerSkills, options = 
 
   const total = Math.round(skillScore + badgeScore + trackScore + budgetScore);
   return Math.min(total, 100);
->>>>>>> eab07a9708354b3068450ba6a6cd1bce8b9e3301
 }

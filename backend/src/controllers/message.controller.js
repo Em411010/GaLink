@@ -6,7 +6,7 @@ import cloudinary from "../config/cloudinary.js";
 export async function getConversations(req, res, next) {
   try {
     const conversations = await Conversation.find({ participants: req.user._id })
-      .populate("participants", "name profilePhoto")
+      .populate("participants", "name profilePhoto location badgeLevel isHirer")
       .sort({ updatedAt: -1 });
     // Attach unread count per conversation
     const withUnread = await Promise.all(
@@ -28,10 +28,10 @@ export async function getOrCreateConversation(req, res, next) {
   try {
     const { userId } = req.body;
     let conv = await Conversation.findOne({ participants: { $all: [req.user._id, userId] } })
-      .populate("participants", "name profilePhoto");
+      .populate("participants", "name profilePhoto location badgeLevel isHirer");
     if (!conv) {
       conv = await Conversation.create({ participants: [req.user._id, userId] });
-      await conv.populate("participants", "name profilePhoto");
+      await conv.populate("participants", "name profilePhoto location badgeLevel isHirer");
     }
     res.json(conv);
   } catch (error) { next(error); }

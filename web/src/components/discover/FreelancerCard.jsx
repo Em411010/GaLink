@@ -1,9 +1,5 @@
 import { Link } from "react-router-dom";
-<<<<<<< HEAD
-import { Star, MapPin, MessageCircle, Briefcase, Navigation } from "lucide-react";
-=======
-import { Star, MapPin, MessageCircle, Briefcase, DollarSign, CheckCircle } from "lucide-react";
->>>>>>> eab07a9708354b3068450ba6a6cd1bce8b9e3301
+import { Star, MapPin, MessageCircle, Briefcase, Navigation, DollarSign, CheckCircle } from "lucide-react";
 import { UserBadges } from "../badge/BadgeSystem";
 
 export default function FreelancerCard({ freelancer }) {
@@ -35,7 +31,7 @@ export default function FreelancerCard({ freelancer }) {
           {/* Name + rating */}
           <div className="flex-1 min-w-0">
             <Link
-              to={`/user/${freelancer._id}`}
+              to={`/profile/${freelancer._id}`}
               className="font-semibold text-sm leading-tight hover:text-primary transition-colors line-clamp-1"
             >
               {freelancer.name}
@@ -85,15 +81,9 @@ export default function FreelancerCard({ freelancer }) {
           </div>
         )}
 
-<<<<<<< HEAD
-        {/* ── Meta: location + distance + experience ── */}
-        <div className="flex items-center gap-3 text-xs text-base-content/50">
-          {freelancer.location && (
-=======
-        {/* ── Meta: location + experience + rate ── */}
+        {/* ── Meta: location + distance + experience + rate ── */}
         <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/50">
-          {freelancer.location?.address && (
->>>>>>> eab07a9708354b3068450ba6a6cd1bce8b9e3301
+          {freelancer.location && (
             <span className="flex items-center gap-1 truncate">
               <MapPin size={11} className="shrink-0" />
               <span className="truncate">{freelancer.location.split(",")[0]}</span>
@@ -128,7 +118,7 @@ export default function FreelancerCard({ freelancer }) {
         {/* ── Actions ── */}
         <div className="flex gap-2 mt-1">
           <Link
-            to={`/user/${freelancer._id}`}
+            to={`/profile/${freelancer._id}`}
             className="btn btn-ghost btn-xs flex-1 border border-base-300"
           >
             View Profile
