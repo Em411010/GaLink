@@ -13,8 +13,15 @@ import {
   Shield,
   ExternalLink,
   FolderOpen,
+<<<<<<< HEAD
   Download,
   Sparkles,
+=======
+  Clock,
+  DollarSign,
+  CheckCircle,
+  Calendar,
+>>>>>>> eab07a9708354b3068450ba6a6cd1bce8b9e3301
 } from "lucide-react";
 import { UserBadges, BadgeCard } from "../components/badge/BadgeSystem";
 
@@ -213,6 +220,7 @@ export default function ProfilePage() {
         </div>
       )}
 
+<<<<<<< HEAD
       {/* Resume Section */}
       {(isOwnProfile || profile.resumeUrl) && (
         <div className="card bg-base-100 shadow-md relative overflow-hidden">
@@ -311,6 +319,73 @@ export default function ProfilePage() {
                 <FileText size={14} className="inline mr-1" />
                 Experience: {profile.experience}
               </p>
+=======
+      {(profile.skills?.length > 0 || profile.serviceCategories?.length > 0) && (
+        <div className="card bg-base-100 shadow-md">
+          <div className="card-body">
+            {profile.serviceCategories?.length > 0 && (
+              <>
+                <h3 className="font-bold mb-2">Service Categories</h3>
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {profile.serviceCategories.map((cat, i) => (
+                    <span key={i} className="badge badge-primary">
+                      {cat}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+            {profile.skills?.length > 0 && (
+              <>
+                <h3 className="font-bold mb-2">Skills</h3>
+                <div className="flex flex-wrap gap-2">
+                  {profile.skills.map((skill, i) => (
+                    <span key={i} className="badge badge-primary badge-outline">
+                      {skill}
+                    </span>
+                  ))}
+                </div>
+              </>
+            )}
+            <div className="flex flex-wrap gap-4 mt-3 text-sm text-base-content/60">
+              {profile.yearsOfExperience > 0 && (
+                <span className="flex items-center gap-1">
+                  <Briefcase size={14} />
+                  {profile.yearsOfExperience} year{profile.yearsOfExperience !== 1 ? "s" : ""} experience
+                </span>
+              )}
+              {!profile.yearsOfExperience && profile.experience && (
+                <span className="flex items-center gap-1">
+                  <FileText size={14} />
+                  {profile.experience}
+                </span>
+              )}
+              {profile.hourlyRate > 0 && (
+                <span className="flex items-center gap-1">
+                  <DollarSign size={14} />
+                  ₱{profile.hourlyRate}/hr
+                  {profile.rateType && profile.rateType !== "hourly" && ` (${profile.rateType.replace("_", " ")})`}
+                </span>
+              )}
+              {profile.completedJobs > 0 && (
+                <span className="flex items-center gap-1">
+                  <CheckCircle size={14} />
+                  {profile.completedJobs} job{profile.completedJobs !== 1 ? "s" : ""} completed
+                </span>
+              )}
+            </div>
+            {profile.availableDays?.length > 0 && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-base-content/60">
+                <Calendar size={14} />
+                <span>Available: {profile.availableDays.join(", ")}</span>
+              </div>
+            )}
+            {profile.serviceAreas?.length > 0 && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-base-content/60">
+                <MapPin size={14} />
+                <span>Service areas: {profile.serviceAreas.join(", ")}</span>
+              </div>
+>>>>>>> eab07a9708354b3068450ba6a6cd1bce8b9e3301
             )}
           </div>
         </div>

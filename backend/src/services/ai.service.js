@@ -32,6 +32,7 @@ Always respond in valid JSON with exactly these fields:
   "requiredSkills": ["skill1", "skill2"],
   "urgencyLevel": "LOW" | "MEDIUM" | "HIGH",
   "locationRelevant": true | false,
+  "estimatedBudget": 0,
   "summary": "one-line summary"
 }
 
@@ -41,6 +42,16 @@ Detect the language the user is writing in and respond accordingly:
 - If the user writes mostly in Filipino/Tagalog → respond in Taglish (natural Filipino-English mix)
 - If the user writes mostly in Cebuano/Bisaya → respond in Cebuano/Bisaya
 Always match the user's current message language. If they switch languages between messages, switch with them.
+
+BUDGET EXTRACTION:
+- If the user mentions a budget amount (e.g., "budget ko ₱15,000", "around 5000", "₱2k budget"), extract the number into estimatedBudget as a plain number (e.g., 15000, 5000, 2000).
+- If no budget is mentioned, set estimatedBudget to 0.
+- Common currency shortcuts: "k" = 1000, "₱" prefix is PHP.
+
+URGENCY RULES:
+- HIGH: words like "emergency", "urgent", "ASAP", "right now", "ngayon na", "agad", "kailangan na", "dagdag na"
+- MEDIUM: words like "this week", "soon", "sa lalong madaling panahon"
+- LOW: no urgency indicators, general inquiries
 
 Rules:
 
@@ -83,6 +94,7 @@ Rules:
      * "Running a business and dealing with a POS breakdown at the same time is so much to handle. Let's get you the right tech right away!"
 
 Examples:
+<<<<<<< HEAD
 - "may problema sa bahay" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Oh no, house problems can really throw off your whole day! To make sure I find exactly the right person for you, can you tell me what's specifically happening? Is it something like a leaking pipe, an electrical issue, a broken door or ceiling, pest problems, or something else? Just describe what you're seeing and I'll take it from there!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
 - "may sira sa kuryente" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Electrical issues can be really worrying, I completely understand! To connect you with the right electrician, could you tell me a little more about what's happening? For example, is it a tripped breaker, a dead outlet, flickering lights, or no power in a specific room?","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
 - "help" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Of course, I'm right here with you! To make sure I find exactly the right person, could you tell me a little more about what's going on? Is it something at home — like a repair or plumbing issue — or more of a professional service like tech or design? Just tell me in your own words, no worries!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
@@ -102,6 +114,14 @@ Examples of correct normalization:
 NEVER output sub-tasks as skills. Wrong: ["Door Repair","Pipe Fitting","Leak Detection"]. Right: ["Carpentry"], ["Plumbing"].
 
 - "My sink has been leaking nonstop since yesterday" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"A non-stop leaking sink is so stressful — the constant dripping and worry about water damage is a lot to deal with overnight. Let's get this sorted for you right away!","problemType":"Plumbing repair","requiredSkills":["Plumbing"],"urgencyLevel":"HIGH","locationRelevant":true,"summary":"Leaking sink repair"}${languageOverride}`;
+=======
+- "may problema sa bahay" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Oh no, house problems can really throw off your whole day! To make sure I find exactly the right person for you, can you tell me what's specifically happening? Is it something like a leaking pipe, an electrical issue, a broken door or ceiling, pest problems, or something else? Just describe what you're seeing and I'll take it from there!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
+- "may sira sa kuryente" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Electrical issues can be really worrying, I completely understand! To connect you with the right electrician, could you tell me a little more about what's happening? For example, is it a tripped breaker, a dead outlet, flickering lights, or no power in a specific room?","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
+- "help" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Of course, I'm right here with you! To make sure I find exactly the right person, could you tell me a little more about what's going on? Is it something at home — like a repair or plumbing issue — or more of a professional service like tech or design? Just tell me in your own words, no worries!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
+- "ayos na, salamat" → {"needsService":false,"isGeneric":false,"clarificationQuestion":"","empathyLine":"That's wonderful to hear! You took care of it — that's great. We're always here whenever you need a hand with anything.","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
+- "My sink has been leaking nonstop since yesterday" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"A non-stop leaking sink is so stressful — the constant dripping and worry about water damage is a lot to deal with overnight. Let's get this sorted for you right away!","problemType":"Plumbing repair","requiredSkills":["Plumbing","Pipe Fitting","Leak Detection"],"urgencyLevel":"HIGH","locationRelevant":true,"estimatedBudget":0,"summary":"Leaking sink repair"}
+- "Need a plumber urgently, budget is around ₱5k" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"Plumbing emergencies are never fun, especially when you need someone right away. Let me find you a reliable plumber ASAP!","problemType":"Plumbing repair","requiredSkills":["Plumbing","Pipe Fitting"],"urgencyLevel":"HIGH","locationRelevant":true,"estimatedBudget":5000,"summary":"Urgent plumbing repair"}${languageOverride}`;
+>>>>>>> eab07a9708354b3068450ba6a6cd1bce8b9e3301
 
   const completion = await getOpenAI().chat.completions.create({
     model: "gpt-3.5-turbo",
@@ -126,6 +146,7 @@ NEVER output sub-tasks as skills. Wrong: ["Door Repair","Pipe Fitting","Leak Det
       requiredSkills: [],
       urgencyLevel: "MEDIUM",
       locationRelevant: false,
+      estimatedBudget: 0,
       summary: content,
     };
   }

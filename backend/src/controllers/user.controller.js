@@ -63,14 +63,19 @@ export async function getUserProfile(req, res, next) {
 }
 export async function updateProfile(req, res, next) {
   try {
-    const { name, bio, location, skills, experience, hourlyRate } = req.body;
+    const { name, bio, location, skills, experience, hourlyRate, serviceCategories, yearsOfExperience, rateType, serviceAreas, availableDays } = req.body;
     const updateData = {};
     if (name) updateData.name = name;
     if (bio !== undefined) updateData.bio = bio;
     if (location !== undefined) updateData.location = location;
     if (skills) updateData.skills = Array.isArray(skills) ? skills : skills.split(",").map((s) => s.trim());
+    if (serviceCategories) updateData.serviceCategories = Array.isArray(serviceCategories) ? serviceCategories : serviceCategories.split(",").map((s) => s.trim());
     if (experience !== undefined) updateData.experience = experience;
+    if (yearsOfExperience !== undefined) updateData.yearsOfExperience = parseInt(yearsOfExperience) || 0;
     if (hourlyRate !== undefined) updateData.hourlyRate = parseFloat(hourlyRate) || 0;
+    if (rateType !== undefined) updateData.rateType = rateType;
+    if (serviceAreas) updateData.serviceAreas = Array.isArray(serviceAreas) ? serviceAreas : serviceAreas.split(",").map((s) => s.trim());
+    if (availableDays) updateData.availableDays = Array.isArray(availableDays) ? availableDays : availableDays.split(",").map((s) => s.trim());
     if (req.file) updateData.profilePhoto = req.file.path;
     const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true }).select("-password -chatbotQueries -resumeText");
     await refreshBadge(user);

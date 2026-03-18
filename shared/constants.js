@@ -4,6 +4,15 @@
   CREATIVE: ["Graphic Design","Video Editing","Photography","Content Writing","Social Media Management"],
   SERVICES: ["Cleaning","Cooking","Driving","Security","Caregiving","Teaching","Accounting"],
 };
+
+export const ALL_SERVICE_CATEGORIES = Object.entries(SKILL_CATEGORIES).flatMap(([group, cats]) =>
+  cats.map((cat) => ({ label: cat, group }))
+);
+
+export const RATE_TYPES = ["hourly", "per_project", "negotiable"];
+
+export const AVAILABLE_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
 export const URGENCY_LEVELS = { LOW: "LOW", MEDIUM: "MEDIUM", HIGH: "HIGH" };
 export const USER_ROLES = { CLIENT: "client", FREELANCER: "freelancer" };
 export const MAX_FILE_SIZE = 10 * 1024 * 1024;

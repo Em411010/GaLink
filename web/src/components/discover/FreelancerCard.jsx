@@ -1,5 +1,9 @@
 import { Link } from "react-router-dom";
+<<<<<<< HEAD
 import { Star, MapPin, MessageCircle, Briefcase, Navigation } from "lucide-react";
+=======
+import { Star, MapPin, MessageCircle, Briefcase, DollarSign, CheckCircle } from "lucide-react";
+>>>>>>> eab07a9708354b3068450ba6a6cd1bce8b9e3301
 import { UserBadges } from "../badge/BadgeSystem";
 
 export default function FreelancerCard({ freelancer }) {
@@ -81,9 +85,15 @@ export default function FreelancerCard({ freelancer }) {
           </div>
         )}
 
+<<<<<<< HEAD
         {/* ── Meta: location + distance + experience ── */}
         <div className="flex items-center gap-3 text-xs text-base-content/50">
           {freelancer.location && (
+=======
+        {/* ── Meta: location + experience + rate ── */}
+        <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/50">
+          {freelancer.location?.address && (
+>>>>>>> eab07a9708354b3068450ba6a6cd1bce8b9e3301
             <span className="flex items-center gap-1 truncate">
               <MapPin size={11} className="shrink-0" />
               <span className="truncate">{freelancer.location.split(",")[0]}</span>
@@ -95,10 +105,22 @@ export default function FreelancerCard({ freelancer }) {
               {freelancer.distanceKm} km
             </span>
           )}
-          {freelancer.experience > 0 && (
+          {freelancer.yearsOfExperience > 0 && (
             <span className="flex items-center gap-1 shrink-0">
               <Briefcase size={11} />
-              {freelancer.experience}y exp
+              {freelancer.yearsOfExperience}y exp
+            </span>
+          )}
+          {freelancer.hourlyRate > 0 && (
+            <span className="flex items-center gap-1 shrink-0">
+              <DollarSign size={11} />
+              ₱{freelancer.hourlyRate}/hr
+            </span>
+          )}
+          {freelancer.completedJobs > 0 && (
+            <span className="flex items-center gap-1 shrink-0">
+              <CheckCircle size={11} />
+              {freelancer.completedJobs} jobs
             </span>
           )}
         </div>
