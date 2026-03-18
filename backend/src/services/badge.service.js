@@ -39,11 +39,9 @@ export function computeBadgeLevel(user) {
 
   // ── Level 2 checks ──────────────────────────────────────────────────────
   const hasResume = !!user.resumeUrl;
-  const hasSkills = (user.skills?.length || 0) >= 3;
-  const hasRate = (user.hourlyRate || 0) > 0;
   const hasPortfolio = (user.portfolio?.length || 0) >= 1;
 
-  if (!hasResume || !hasSkills || !hasRate || !hasPortfolio) return 1;
+  if (!hasResume || !hasPortfolio) return 1;
 
   // ── Level 3 checks ──────────────────────────────────────────────────────
   const hasClearance = user.clearance?.url && user.clearance?.verified && user.clearanceStatus === 'approved';
@@ -80,8 +78,6 @@ export function getBadgeChecklist(user) {
       label: "Freelancer 🔵",
       items: [
         { key: "resume",    label: "Upload your resume",            done: !!user.resumeUrl },
-        { key: "skills",    label: "Add at least 3 skills",         done: (user.skills?.length || 0) >= 3 },
-        { key: "hourlyRate",label: "Set your hourly rate",          done: (user.hourlyRate || 0) > 0 },
         { key: "portfolio", label: "Add at least 1 portfolio item", done: (user.portfolio?.length || 0) >= 1 },
       ],
     },

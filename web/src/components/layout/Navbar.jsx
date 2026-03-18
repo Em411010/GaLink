@@ -235,7 +235,7 @@ export default function Navbar() {
                   <button
                     key={to}
                     onClick={openSearch}
-                    className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                       isActive
                         ? "bg-primary text-primary-content shadow-sm shadow-primary/25"
                         : "text-base-content/60 hover:text-base-content hover:bg-base-300/50"
@@ -250,7 +250,7 @@ export default function Navbar() {
                 <Link
                   key={to}
                   to={to}
-                  className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                     isActive
                       ? "bg-primary text-primary-content shadow-sm shadow-primary/25"
                       : "text-base-content/60 hover:text-base-content hover:bg-base-300/50"

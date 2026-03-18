@@ -47,13 +47,13 @@ export default function FeedPage() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-12 gap-0 w-full items-start">
-      {/* Left — 2 cols (hidden on mobile via LeftSidebar internal hidden md:block) */}
-      <div className="hidden md:block col-span-2 sticky top-20 self-start">
+      {/* Left — 3 cols (hidden on mobile via LeftSidebar internal hidden md:block) */}
+      <div className="hidden md:block col-span-3 sticky top-20 self-start">
         <LeftSidebar />
       </div>
 
-      {/* Center — full-width on mobile, 4 cols on desktop */}
-      <div className="md:col-start-5 md:col-span-4 min-w-0 space-y-6 py-0">
+      {/* Center — full-width on mobile, 5 cols on desktop */}
+      <div className="md:col-start-5 md:col-span-5 min-w-0 space-y-6 py-0">
         {loading && posts.length === 0 ? (
           <div className="flex justify-center py-12">
             <span className="loading loading-spinner loading-lg text-primary"></span>

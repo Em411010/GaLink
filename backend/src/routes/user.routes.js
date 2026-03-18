@@ -1,5 +1,5 @@
 ﻿import { Router } from "express";
-import { getFreelancers, getUserProfile, updateProfile, uploadResume, toggleAvailability, getSidebarData, getSuggestedUsers, getSeminars } from "../controllers/user.controller.js";
+import { getFreelancers, getUserProfile, updateProfile, uploadResume, toggleAvailability, updateLocation, getSidebarData, getSuggestedUsers, getSeminars } from "../controllers/user.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { imageUpload, resumeUpload } from "../config/cloudinary.js";
 const router = Router();
@@ -8,6 +8,7 @@ router.get("/sidebar/data", protect, getSidebarData);
 router.get("/sidebar/suggestions", protect, getSuggestedUsers);
 router.get("/sidebar/seminars", protect, getSeminars);
 router.put("/availability/toggle", protect, toggleAvailability);
+router.put("/location", protect, updateLocation);
 router.get("/:id", getUserProfile);
 router.put("/profile", protect, imageUpload.single("profilePhoto"), updateProfile);
 router.post("/resume", protect, resumeUpload.single("resume"), uploadResume);

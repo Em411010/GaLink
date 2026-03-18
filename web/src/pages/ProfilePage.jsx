@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import { userAPI, ratingAPI } from "../services/api";
 import useAuthStore from "../store/useAuthStore";
@@ -13,6 +13,8 @@ import {
   Shield,
   ExternalLink,
   FolderOpen,
+  Download,
+  Sparkles,
 } from "lucide-react";
 import { UserBadges, BadgeCard } from "../components/badge/BadgeSystem";
 
@@ -30,6 +32,9 @@ export default function ProfilePage() {
     reliability: 5,
     comment: "",
   });
+
+  const resumeInputRef = useRef(null);
+  const [resumeUploading, setResumeUploading] = useState(false);
 
   const isOwnProfile = !id || id === currentUser?._id;
   const profileId = id || currentUser?._id;
@@ -60,13 +65,22 @@ export default function ProfilePage() {
     if (!file) return;
     const formData = new FormData();
     formData.append("resume", file);
+    setResumeUploading(true);
     try {
       const res = await userAPI.uploadResume(formData);
-      toast.success("Resume uploaded — Freelancer mode unlocked!");
+      const skillCount = res.data.extractedData?.skills?.length || 0;
+      toast.success(
+        skillCount > 0
+          ? `Resume uploaded! ${skillCount} skill${skillCount > 1 ? "s" : ""} auto-extracted from your resume.`
+          : "Resume uploaded — Freelancer mode unlocked!"
+      );
       updateUser(res.data.user);
       setProfile(res.data.user);
     } catch (err) {
       toast.error(err.response?.data?.message || "Upload failed");
+    } finally {
+      setResumeUploading(false);
+      if (resumeInputRef.current) resumeInputRef.current.value = "";
     }
   };
 
@@ -199,17 +213,99 @@ export default function ProfilePage() {
         </div>
       )}
 
-      {profile.skills?.length > 0 && (
+      {/* Resume Section */}
+      {(isOwnProfile || profile.resumeUrl) && (
+        <div className="card bg-base-100 shadow-md relative overflow-hidden">
+          {/* Loading overlay */}
+          {resumeUploading && (
+            <div className="absolute inset-0 bg-base-100/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-3">
+              <span className="loading loading-spinner loading-md text-primary" />
+              <div className="text-center">
+                <p className="text-sm font-semibold">Uploading &amp; Analyzing Resume…</p>
+                <p className="text-xs text-base-content/50 mt-0.5">AI is extracting your skills. This may take a few seconds.</p>
+              </div>
+            </div>
+          )}
+          <div className="card-body">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-bold flex items-center gap-2">
+                <FileText size={16} /> Resume
+              </h3>
+              {isOwnProfile && (
+                <>
+                  <input
+                    ref={resumeInputRef}
+                    type="file"
+                    accept=".pdf,.doc,.docx"
+                    className="hidden"
+                    onChange={handleResumeUpload}
+                  />
+                  <button
+                    className="btn btn-outline btn-xs gap-1"
+                    disabled={resumeUploading}
+                    onClick={() => resumeInputRef.current?.click()}
+                  >
+                    <Upload size={12} />
+                    {profile.resumeUrl ? "Replace" : "Upload"}
+                  </button>
+                </>
+              )}
+            </div>
+            {profile.resumeUrl ? (
+              <div className="flex flex-col gap-1.5">
+                <a
+                  href={profile.resumeUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn btn-ghost btn-sm gap-2 self-start"
+                >
+                  <Download size={14} /> View / Download Resume
+                </a>
+                {profile.resumeUploadedAt && (
+                  <p className="text-xs text-base-content/40 flex items-center gap-1">
+                    <FileText size={11} />
+                    Uploaded {new Date(profile.resumeUploadedAt).toLocaleDateString("en-PH", { year: "numeric", month: "long", day: "numeric" })}
+                  </p>
+                )}
+              </div>
+            ) : (
+              isOwnProfile && (
+                <p className="text-sm text-base-content/50">
+                  No resume uploaded yet. Upload a PDF or DOCX and your skills will be auto-extracted.
+                </p>
+              )
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Skills */}
+      {(profile.skills?.length > 0 || isOwnProfile) && (
         <div className="card bg-base-100 shadow-md">
           <div className="card-body">
-            <h3 className="font-bold mb-2">Skills</h3>
-            <div className="flex flex-wrap gap-2">
-              {profile.skills.map((skill, i) => (
-                <span key={i} className="badge badge-primary badge-outline">
-                  {skill}
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-bold flex items-center gap-2"><Sparkles size={15} className="text-primary" /> Skills</h3>
+              {isOwnProfile && (
+                <span className="text-[11px] text-base-content/40 flex items-center gap-1">
+                  <FileText size={11} /> Auto-extracted from resume
                 </span>
-              ))}
+              )}
             </div>
+            {profile.skills?.length > 0 ? (
+              <div className="flex flex-wrap gap-2">
+                {profile.skills.map((skill, i) => (
+                  <span key={i} className="badge badge-primary badge-outline">
+                    {skill}
+                  </span>
+                ))}
+              </div>
+            ) : (
+              isOwnProfile && (
+                <p className="text-sm text-base-content/50">
+                  No skills detected yet. Upload your resume above and our AI will extract your skills automatically.
+                </p>
+              )
+            )}
             {profile.experience && (
               <p className="mt-3 text-sm text-base-content/60">
                 <FileText size={14} className="inline mr-1" />

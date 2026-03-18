@@ -20,6 +20,7 @@ const userSchema = new mongoose.Schema({
   profilePhoto: { type: String, default: '' },
   bio: { type: String, default: '' },
   location: { type: String, default: '' },
+  coords: { type: { type: String }, coordinates: [Number] },
   skills: [String],
   experience: { type: String, default: '' },
   hourlyRate: { type: Number, default: 0 },
@@ -82,11 +83,56 @@ const User = mongoose.model('User', userSchema);
 const Post = mongoose.model('Post', postSchema);
 const Reel = mongoose.model('Reel', reelSchema);
 
+// ─── GPS Coordinates (Metro Manila + Region 4A) [lng, lat] ────────────────────
+// Order matches users[] array (index 0–39)
+const USER_COORDS = [
+  [121.0244, 14.5547], // 0  Maria Santos        - Makati
+  [121.0490, 14.5500], // 1  Carlos Garcia        - Taguig
+  [120.9842, 14.5995], // 2  Ana Reyes            - Manila
+  [121.0437, 14.6760], // 3  Juan Dela Cruz       - Quezon City
+  [121.0848, 14.5756], // 4  Trisha Villanueva    - Pasig
+  [121.1029, 14.6507], // 5  Roberto Ramos        - Marikina
+  [120.9830, 14.7011], // 6  Leonardo Bautista    - Valenzuela
+  [121.0198, 14.4793], // 7  Ricardo Flores       - Parañaque
+  [121.0076, 14.4490], // 8  Fernando Cruz        - Las Piñas
+  [121.1763, 14.5862], // 9  Eduardo Navarro      - Antipolo, Rizal
+  [121.0244, 14.5547], // 10 Jessica Mendoza      - Makati
+  [121.0437, 14.6760], // 11 Marco Evangelista    - Quezon City
+  [121.0848, 14.5756], // 12 Patricia Lim         - Pasig
+  [121.0198, 14.4793], // 13 Beatrice Cruz        - Parañaque
+  [121.1029, 14.6507], // 14 Diana Santos         - Marikina
+  [121.0437, 14.6760], // 15 Ernesto Dela Cruz    - Quezon City
+  [121.0359, 14.5794], // 16 Antonio Soriano      - Mandaluyong
+  [120.9748, 14.6497], // 17 Danilo Aquino        - Caloocan
+  [121.0490, 14.5500], // 18 Ramon Perez          - Taguig
+  [121.0012, 14.5378], // 19 Gabriel Reyes        - Pasay
+  [120.9748, 14.6497], // 20 Domingo Bautista     - Caloocan
+  [121.0434, 14.4135], // 21 Joel Hernandez       - Muntinlupa
+  [121.0339, 14.6002], // 22 Rodel Garcia         - San Juan
+  [121.0848, 14.5756], // 23 Nelson Torres        - Pasig
+  [121.0244, 14.5547], // 24 Engr. Benjamin Lim   - Makati
+  [121.0848, 14.5756], // 25 Nena Villanueva      - Pasig
+  [121.0076, 14.4490], // 26 Rodrigo Magno        - Las Piñas
+  [121.0490, 14.5500], // 27 Jun Perez            - Taguig
+  [121.1763, 14.5862], // 28 Carding Aquino       - Antipolo, Rizal
+  [121.0339, 14.6002], // 29 Camille Reyes        - San Juan
+  [121.0359, 14.5794], // 30 Miguel Torres        - Mandaluyong
+  [121.0244, 14.5547], // 31 Ria Concepcion       - Makati
+  [120.9830, 14.7011], // 32 Tony Soriano         - Valenzuela
+  [121.0359, 14.5794], // 33 Lito Bernal          - Mandaluyong
+  [121.0434, 14.4135], // 34 Danny Santos         - Muntinlupa
+  [121.0244, 14.5547], // 35 Kevin Tan            - Makati
+  [121.0339, 14.6002], // 36 Nikki Tan            - San Juan
+  [121.0012, 14.5378], // 37 Jericho Lim          - Pasay
+  [121.0490, 14.5500], // 38 Engr. Ricky Torres   - Taguig
+  [120.9748, 14.6497], // 39 Joel Ramirez         - Caloocan
+];
+
 // ─── Face profile photos (randomuser.me — stable seeded faces) ───────────────
 
 const face = (gender, i) => `https://randomuser.me/api/portraits/${gender}/${i}.jpg`;
 
-// ─── Sample Videos (free public MP4s) ────────────────────────────────────────
+// ─── Sample Videos (free public MP4s — confirmed working Google CDN) ─────────
 
 const SAMPLE_VIDEOS = [
   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
@@ -99,6 +145,8 @@ const SAMPLE_VIDEOS = [
   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WeAreGoingOnBullrun.mp4',
   'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/WhatCarCanYouGetForAGrand.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
 ];
 
 // ─── KYC placeholder images ─────────────────────────────────────────────────
@@ -618,56 +666,56 @@ const users = [
 
 const posts = [
   // TECH (5)
-  { content: 'Just shipped v2.0 of an e-commerce platform for a local brand — React + Node.js + MongoDB stack! 🚀 Real-time inventory, COD tracking, and admin analytics dashboard. Open for freelance web dev projects.', tags: ['webdev', 'react', 'nodejs'], imageUrl: 'https://picsum.photos/seed/tech1/800/600', userIndex: 0 },
-  { content: 'Migrated a startup from a single VPS to a fully containerized AWS ECS setup — zero downtime, 60% cost reduction! ☁️ Terraform + Docker + GitHub Actions CI/CD pipeline.', tags: ['aws', 'devops', 'docker'], imageUrl: 'https://picsum.photos/seed/tech2/800/600', userIndex: 1 },
-  { content: 'Launched a cross-platform delivery app on both App Store and Google Play — built in React Native! 📱 Real-time tracking, push notifications, and driver dashboard.', tags: ['reactnative', 'mobiledev'], imageUrl: 'https://picsum.photos/seed/tech3/800/600', userIndex: 2 },
-  { content: 'Complete UI redesign for a fintech startup — from wireframes to dev-ready Figma components in 3 weeks! 🎨 Improved task completion rate by 40% in user testing.', tags: ['uidesign', 'figma', 'ux'], imageUrl: 'https://picsum.photos/seed/tech4/800/600', userIndex: 3 },
-  { content: 'Built a real-time sales intelligence dashboard in Power BI connected to 5 data sources! 📊 Automated ETL pipeline in Python, refreshes hourly.', tags: ['powerbi', 'python', 'data'], imageUrl: 'https://picsum.photos/seed/tech5/800/600', userIndex: 4 },
+  { content: 'Just shipped v2.0 of an e-commerce platform for a local brand — React + Node.js + MongoDB stack! 🚀 Real-time inventory, COD tracking, and admin analytics dashboard. Open for freelance web dev projects.', tags: ['webdev', 'react', 'nodejs'], imageUrl: 'https://loremflickr.com/800/600/programming,javascript', userIndex: 0 },
+  { content: 'Migrated a startup from a single VPS to a fully containerized AWS ECS setup — zero downtime, 60% cost reduction! ☁️ Terraform + Docker + GitHub Actions CI/CD pipeline.', tags: ['aws', 'devops', 'docker'], imageUrl: 'https://loremflickr.com/800/600/cloud,server', userIndex: 1 },
+  { content: 'Launched a cross-platform delivery app on both App Store and Google Play — built in React Native! 📱 Real-time tracking, push notifications, and driver dashboard.', tags: ['reactnative', 'mobiledev'], imageUrl: 'https://loremflickr.com/800/600/mobile,smartphone', userIndex: 2 },
+  { content: 'Complete UI redesign for a fintech startup — from wireframes to dev-ready Figma components in 3 weeks! 🎨 Improved task completion rate by 40% in user testing.', tags: ['uidesign', 'figma', 'ux'], imageUrl: 'https://loremflickr.com/800/600/design,interface', userIndex: 3 },
+  { content: 'Built a real-time sales intelligence dashboard in Power BI connected to 5 data sources! 📊 Automated ETL pipeline in Python, refreshes hourly.', tags: ['powerbi', 'python', 'data'], imageUrl: 'https://loremflickr.com/800/600/data,analytics', userIndex: 4 },
 
   // CARPENTRY (5)
-  { content: 'Custom sala set gawa sa solid narra — mula raw lumber hanggang finished product! 🪵 Hand-finished, tatagal ng dekada. Open for orders across Metro Manila.', tags: ['carpentry', 'furniture', 'woodwork'], imageUrl: 'https://picsum.photos/seed/carp1/800/600', userIndex: 5 },
-  { content: 'Delivered a complete dining set — 8-seater table with matching chairs, all from reclaimed tanguile wood. Sustainable furniture is the future! 🌿', tags: ['furniture', 'sustainable', 'woodwork'], imageUrl: 'https://picsum.photos/seed/carp2/800/600', userIndex: 6 },
-  { content: 'Just finished ceiling and partition wall installation for a new office in Parañaque. Clean lines, on schedule, and within budget. 💪', tags: ['carpentry', 'fitout', 'office'], imageUrl: 'https://picsum.photos/seed/carp3/800/600', userIndex: 7 },
-  { content: 'Custom-made mahogany front door installed for a client in Las Piñas! Solid construction with carved details. Built to last a lifetime. 🚪', tags: ['carpentry', 'door', 'woodwork'], imageUrl: 'https://picsum.photos/seed/carp4/800/600', userIndex: 8 },
-  { content: 'Completed a wooden truss system for a new build in Antipolo — 3-bedroom house. Strong, lightweight, and properly braced. Ready for roofing! 🏠', tags: ['roofing', 'truss', 'carpentry'], imageUrl: 'https://picsum.photos/seed/carp5/800/600', userIndex: 9 },
+  { content: 'Custom sala set gawa sa solid narra — mula raw lumber hanggang finished product! 🪵 Hand-finished, tatagal ng dekada. Open for orders across Metro Manila.', tags: ['carpentry', 'furniture', 'woodwork'], imageUrl: 'https://loremflickr.com/800/600/carpentry,woodwork', userIndex: 5 },
+  { content: 'Delivered a complete dining set — 8-seater table with matching chairs, all from reclaimed tanguile wood. Sustainable furniture is the future! 🌿', tags: ['furniture', 'sustainable', 'woodwork'], imageUrl: 'https://loremflickr.com/800/600/furniture,wood', userIndex: 6 },
+  { content: 'Just finished ceiling and partition wall installation for a new office in Parañaque. Clean lines, on schedule, and within budget. 💪', tags: ['carpentry', 'fitout', 'office'], imageUrl: 'https://loremflickr.com/800/600/interior,renovation', userIndex: 7 },
+  { content: 'Custom-made mahogany front door installed for a client in Las Piñas! Solid construction with carved details. Built to last a lifetime. 🚪', tags: ['carpentry', 'door', 'woodwork'], imageUrl: 'https://loremflickr.com/800/600/woodwork,door', userIndex: 8 },
+  { content: 'Completed a wooden truss system for a new build in Antipolo — 3-bedroom house. Strong, lightweight, and properly braced. Ready for roofing! 🏠', tags: ['roofing', 'truss', 'carpentry'], imageUrl: 'https://loremflickr.com/800/600/roofing,construction', userIndex: 9 },
 
   // EDUCATION (5)
-  { content: 'Student passed the UP Diliman entrance exam with a score of 98/100 in Math! 🎉 3 months of intensive review — personalized approach works!', tags: ['mathtutoring', 'education'], imageUrl: 'https://picsum.photos/seed/edu1/800/600', userIndex: 10 },
-  { content: 'My IELTS student scored Band 8.0 overall — she needed 7.5 for her UK visa! 🇬🇧 Customized mock tests, grammar drilling, and speaking practice.', tags: ['ielts', 'english', 'tutoring'], imageUrl: 'https://picsum.photos/seed/edu2/800/600', userIndex: 11 },
-  { content: 'Board exam results are out — 4 out of 5 ng reviewees ko pumasa sa LET Science! 🧪 Full coverage ng Gen Science, Physics, and Chemistry.', tags: ['science', 'boardreview', 'education'], imageUrl: 'https://picsum.photos/seed/edu3/800/600', userIndex: 12 },
-  { content: 'Phonics reading breakthrough — my Grade 1 student went from non-reader to reading full sentences in 8 weeks! 📚', tags: ['phonics', 'reading', 'education'], imageUrl: 'https://picsum.photos/seed/edu4/800/600', userIndex: 13 },
-  { content: 'Portfolio prep results: 3 out of 4 students accepted sa their top choice architecture schools! 🖼️ Drawing, perspective, and digital rendering.', tags: ['art', 'portfolio', 'education'], imageUrl: 'https://picsum.photos/seed/edu5/800/600', userIndex: 14 },
+  { content: 'Student passed the UP Diliman entrance exam with a score of 98/100 in Math! 🎉 3 months of intensive review — personalized approach works!', tags: ['mathtutoring', 'education'], imageUrl: 'https://loremflickr.com/800/600/mathematics,classroom', userIndex: 10 },
+  { content: 'My IELTS student scored Band 8.0 overall — she needed 7.5 for her UK visa! 🇬🇧 Customized mock tests, grammar drilling, and speaking practice.', tags: ['ielts', 'english', 'tutoring'], imageUrl: 'https://loremflickr.com/800/600/english,education', userIndex: 11 },
+  { content: 'Board exam results are out — 4 out of 5 ng reviewees ko pumasa sa LET Science! 🧪 Full coverage ng Gen Science, Physics, and Chemistry.', tags: ['science', 'boardreview', 'education'], imageUrl: 'https://loremflickr.com/800/600/science,laboratory', userIndex: 12 },
+  { content: 'Phonics reading breakthrough — my Grade 1 student went from non-reader to reading full sentences in 8 weeks! 📚', tags: ['phonics', 'reading', 'education'], imageUrl: 'https://loremflickr.com/800/600/books,children', userIndex: 13 },
+  { content: 'Portfolio prep results: 3 out of 4 students accepted sa their top choice architecture schools! 🖼️ Drawing, perspective, and digital rendering.', tags: ['art', 'portfolio', 'education'], imageUrl: 'https://loremflickr.com/800/600/art,drawing', userIndex: 14 },
 
   // ELECTRICIAN (5)
-  { content: 'Completed a full home installation: 30 LED downlights, 3 circuit breakers, and a smart switch system wired throughout a brand new house in QC! 💡', tags: ['electrical', 'smartswitch', 'newhome'], imageUrl: 'https://picsum.photos/seed/elec1/800/600', userIndex: 15 },
-  { content: 'Solar panel installation done for a residential home in Mandaluyong — 5kW system with battery backup. Lower electric bills starting this month! ☀️', tags: ['solar', 'electrical', 'renewable'], imageUrl: 'https://picsum.photos/seed/elec2/800/600', userIndex: 16 },
-  { content: 'Factory electrical maintenance completed — motor control center rewiring, PLC panel cleanup. Zero downtime during the upgrade! ⚡', tags: ['industrial', 'electrical', 'maintenance'], imageUrl: 'https://picsum.photos/seed/elec3/800/600', userIndex: 17 },
-  { content: 'Aircon installation season! Just finished 3 split-type units for a condo in BGC. Professional installation = mas malamig at matipid sa kuryente. ❄️', tags: ['aircon', 'installation', 'electrical'], imageUrl: 'https://picsum.photos/seed/elec4/800/600', userIndex: 18 },
-  { content: 'Emergency call at 11 PM — breaker kept tripping due to a short circuit in the kitchen line. Found the faulty wire, repaired, all good by midnight! 🔧', tags: ['emergency', 'electrical', 'repair'], imageUrl: 'https://picsum.photos/seed/elec5/800/600', userIndex: 19 },
+  { content: 'Completed a full home installation: 30 LED downlights, 3 circuit breakers, and a smart switch system wired throughout a brand new house in QC! 💡', tags: ['electrical', 'smartswitch', 'newhome'], imageUrl: 'https://loremflickr.com/800/600/electrical,wiring', userIndex: 15 },
+  { content: 'Solar panel installation done for a residential home in Mandaluyong — 5kW system with battery backup. Lower electric bills starting this month! ☀️', tags: ['solar', 'electrical', 'renewable'], imageUrl: 'https://loremflickr.com/800/600/solar,energy', userIndex: 16 },
+  { content: 'Factory electrical maintenance completed — motor control center rewiring, PLC panel cleanup. Zero downtime during the upgrade! ⚡', tags: ['industrial', 'electrical', 'maintenance'], imageUrl: 'https://loremflickr.com/800/600/industrial,factory', userIndex: 17 },
+  { content: 'Aircon installation season! Just finished 3 split-type units for a condo in BGC. Professional installation = mas malamig at matipid sa kuryente. ❄️', tags: ['aircon', 'installation', 'electrical'], imageUrl: 'https://loremflickr.com/800/600/aircon,cooling', userIndex: 18 },
+  { content: 'Emergency call at 11 PM — breaker kept tripping due to a short circuit in the kitchen line. Found the faulty wire, repaired, all good by midnight! 🔧', tags: ['emergency', 'electrical', 'repair'], imageUrl: 'https://loremflickr.com/800/600/electrical,repair', userIndex: 19 },
 
   // PLUMBER (5)
-  { content: 'Before & after ng bathroom rehab sa Caloocan — bagong tiles, bowl, shower system, at complete pipework. 🚿 25 years experience!', tags: ['plumbing', 'renovation', 'bathroom'], imageUrl: 'https://picsum.photos/seed/plumb1/800/600', userIndex: 20 },
-  { content: 'Kitchen sink and faucet replacement plus under-sink drainage fix in Muntinlupa. Quick, clean, and no leaks guaranteed! 🔧', tags: ['plumbing', 'kitchen', 'repair'], imageUrl: 'https://picsum.photos/seed/plumb2/800/600', userIndex: 21 },
-  { content: 'Deep well pump installation done for a house in San Juan — strong water pressure on all floors now! Pressure tank included. 💧', tags: ['waterpump', 'plumbing', 'installation'], imageUrl: 'https://picsum.photos/seed/plumb3/800/600', userIndex: 22 },
-  { content: 'Cleared a severely clogged main sewer line in Pasig — hydro jetting + camera inspection revealed root intrusion. All fixed! 🌿🔧', tags: ['drainage', 'sewer', 'plumbing'], imageUrl: 'https://picsum.photos/seed/plumb4/800/600', userIndex: 23 },
-  { content: 'Fire sprinkler system installation for a new commercial building in Makati — code-compliant and inspected. Safety first! 🔥', tags: ['firesafety', 'plumbing', 'commercial'], imageUrl: 'https://picsum.photos/seed/plumb5/800/600', userIndex: 24 },
+  { content: 'Before & after ng bathroom rehab sa Caloocan — bagong tiles, bowl, shower system, at complete pipework. 🚿 25 years experience!', tags: ['plumbing', 'renovation', 'bathroom'], imageUrl: 'https://loremflickr.com/800/600/plumbing,bathroom', userIndex: 20 },
+  { content: 'Kitchen sink and faucet replacement plus under-sink drainage fix in Muntinlupa. Quick, clean, and no leaks guaranteed! 🔧', tags: ['plumbing', 'kitchen', 'repair'], imageUrl: 'https://loremflickr.com/800/600/kitchen,plumbing', userIndex: 21 },
+  { content: 'Deep well pump installation done for a house in San Juan — strong water pressure on all floors now! Pressure tank included. 💧', tags: ['waterpump', 'plumbing', 'installation'], imageUrl: 'https://loremflickr.com/800/600/pump,water', userIndex: 22 },
+  { content: 'Cleared a severely clogged main sewer line in Pasig — hydro jetting + camera inspection revealed root intrusion. All fixed! 🌿🔧', tags: ['drainage', 'sewer', 'plumbing'], imageUrl: 'https://loremflickr.com/800/600/drainage,pipes', userIndex: 23 },
+  { content: 'Fire sprinkler system installation for a new commercial building in Makati — code-compliant and inspected. Safety first! 🔥', tags: ['firesafety', 'plumbing', 'commercial'], imageUrl: 'https://loremflickr.com/800/600/plumbing,commercial', userIndex: 24 },
 
   // RANDOM SKILLS (15)
-  { content: 'Deep cleaning transformation para sa 2-bedroom condo sa Pasig! 🧹 Grout scrubbing, appliance degreasing, carpet shampooing. Book now!', tags: ['cleaning', 'deepclean', 'condo'], imageUrl: 'https://picsum.photos/seed/rand1/800/600', userIndex: 25 },
-  { content: 'Fresh exterior paint job sa 2-storey house sa Las Piñas! 🎨 Weathershield paint, clean lines, walang drip. Free estimate available!', tags: ['painting', 'exterior', 'renovation'], imageUrl: 'https://picsum.photos/seed/rand2/800/600', userIndex: 26 },
-  { content: 'Steel security gate fabricated and installed — designed by the client, built by me! 🔩 MIG welded, primered, and powder-coated.', tags: ['welding', 'steelgate', 'fabrication'], imageUrl: 'https://picsum.photos/seed/rand3/800/600', userIndex: 27 },
-  { content: 'Garden makeover para sa subdivision home sa Antipolo! 🌿 Ornamental plants, lawn leveling, and stone pathway. Available across Rizal!', tags: ['landscaping', 'gardening', 'renovation'], imageUrl: 'https://picsum.photos/seed/rand4/800/600', userIndex: 28 },
-  { content: 'My 9-year-old student just performed Moonlight Sonata at their school recital! 🎹 2 years of consistent lessons — so proud!', tags: ['piano', 'music', 'teaching'], imageUrl: 'https://picsum.photos/seed/rand5/800/600', userIndex: 29 },
-  { content: 'Completed a penetration test for an MSME — found 3 critical vulnerabilities before they could be exploited! 🔐 All patched and verified.', tags: ['cybersecurity', 'pentest', 'infosec'], imageUrl: 'https://picsum.photos/seed/rand6/800/600', userIndex: 30 },
-  { content: 'Brand identity package delivered for a new food startup — logo, color palette, packaging mockups, and social media templates! 🎨', tags: ['design', 'branding', 'logo'], imageUrl: 'https://picsum.photos/seed/rand7/800/600', userIndex: 31 },
-  { content: 'CHB wall at concrete flooring ng bodega — done in 3 days! 🧱 Reinforced footing, plastered at painted. 18 years sa masonry work.', tags: ['masonry', 'construction', 'concrete'], imageUrl: 'https://picsum.photos/seed/rand8/800/600', userIndex: 32 },
-  { content: 'Aircon deep cleaning result — shocking kung gaano karumi! 😱 Regular cleaning = mas malamig at mas matipid sa kuryente.', tags: ['aircon', 'cleaning', 'maintenance'], imageUrl: 'https://picsum.photos/seed/rand9/800/600', userIndex: 33 },
-  { content: 'Rooftop waterproofing completed sa unit sa Muntinlupa — zero leaks guaranteed! ☔ 3-layer elastomeric coating with fiber mesh.', tags: ['roofing', 'waterproofing', 'construction'], imageUrl: 'https://picsum.photos/seed/rand10/800/600', userIndex: 34 },
-  { content: 'JLPT N3 student passed with 95%! 🇯🇵 Intensive 6-month program covering kanji, grammar, listening. Now accepting N5 students.', tags: ['japanese', 'jlpt', 'language'], imageUrl: 'https://picsum.photos/seed/rand11/800/600', userIndex: 35 },
-  { content: 'Grew a local restaurant brand from 3K to 85K Instagram followers in 5 months! 🍽️ Content calendar, stories, and paid ads.', tags: ['socialmedia', 'instagram', 'marketing'], imageUrl: 'https://picsum.photos/seed/rand12/800/600', userIndex: 36 },
-  { content: 'New Shopify store launched for a local clothing brand — custom theme, upsell funnels, abandoned cart emails! 🛒 Speed score: 94/100.', tags: ['shopify', 'ecommerce', 'webdev'], imageUrl: 'https://picsum.photos/seed/rand13/800/600', userIndex: 37 },
-  { content: 'Client transformation after 12 weeks of personalized training — down 8kg, body fat from 28% to 19%! 💪 Programs available in BGC.', tags: ['fitness', 'training', 'transformation'], imageUrl: 'https://picsum.photos/seed/rand14/800/600', userIndex: 38 },
-  { content: 'Student passed the LTO written exam on the FIRST try! 🚗 5-session program covering traffic signs, road rules, and defensive driving.', tags: ['driving', 'lto', 'lessons'], imageUrl: 'https://picsum.photos/seed/rand15/800/600', userIndex: 39 },
+  { content: 'Deep cleaning transformation para sa 2-bedroom condo sa Pasig! 🧹 Grout scrubbing, appliance degreasing, carpet shampooing. Book now!', tags: ['cleaning', 'deepclean', 'condo'], imageUrl: 'https://loremflickr.com/800/600/cleaning,housekeeping', userIndex: 25 },
+  { content: 'Fresh exterior paint job sa 2-storey house sa Las Piñas! 🎨 Weathershield paint, clean lines, walang drip. Free estimate available!', tags: ['painting', 'exterior', 'renovation'], imageUrl: 'https://loremflickr.com/800/600/painting,house', userIndex: 26 },
+  { content: 'Steel security gate fabricated and installed — designed by the client, built by me! 🔩 MIG welded, primered, and powder-coated.', tags: ['welding', 'steelgate', 'fabrication'], imageUrl: 'https://loremflickr.com/800/600/welding,steel', userIndex: 27 },
+  { content: 'Garden makeover para sa subdivision home sa Antipolo! 🌿 Ornamental plants, lawn leveling, and stone pathway. Available across Rizal!', tags: ['landscaping', 'gardening', 'renovation'], imageUrl: 'https://loremflickr.com/800/600/garden,landscaping', userIndex: 28 },
+  { content: 'My 9-year-old student just performed Moonlight Sonata at their school recital! 🎹 2 years of consistent lessons — so proud!', tags: ['piano', 'music', 'teaching'], imageUrl: 'https://loremflickr.com/800/600/piano,music', userIndex: 29 },
+  { content: 'Completed a penetration test for an MSME — found 3 critical vulnerabilities before they could be exploited! 🔐 All patched and verified.', tags: ['cybersecurity', 'pentest', 'infosec'], imageUrl: 'https://loremflickr.com/800/600/cybersecurity,computer', userIndex: 30 },
+  { content: 'Brand identity package delivered for a new food startup — logo, color palette, packaging mockups, and social media templates! 🎨', tags: ['design', 'branding', 'logo'], imageUrl: 'https://loremflickr.com/800/600/graphic,design', userIndex: 31 },
+  { content: 'CHB wall at concrete flooring ng bodega — done in 3 days! 🧱 Reinforced footing, plastered at painted. 18 years sa masonry work.', tags: ['masonry', 'construction', 'concrete'], imageUrl: 'https://loremflickr.com/800/600/masonry,construction', userIndex: 32 },
+  { content: 'Aircon deep cleaning result — shocking kung gaano karumi! 😱 Regular cleaning = mas malamig at mas matipid sa kuryente.', tags: ['aircon', 'cleaning', 'maintenance'], imageUrl: 'https://loremflickr.com/800/600/aircon,maintenance', userIndex: 33 },
+  { content: 'Rooftop waterproofing completed sa unit sa Muntinlupa — zero leaks guaranteed! ☔ 3-layer elastomeric coating with fiber mesh.', tags: ['roofing', 'waterproofing', 'construction'], imageUrl: 'https://loremflickr.com/800/600/roofing,waterproofing', userIndex: 34 },
+  { content: 'JLPT N3 student passed with 95%! 🇯🇵 Intensive 6-month program covering kanji, grammar, listening. Now accepting N5 students.', tags: ['japanese', 'jlpt', 'language'], imageUrl: 'https://loremflickr.com/800/600/japanese,culture', userIndex: 35 },
+  { content: 'Grew a local restaurant brand from 3K to 85K Instagram followers in 5 months! 🍽️ Content calendar, stories, and paid ads.', tags: ['socialmedia', 'instagram', 'marketing'], imageUrl: 'https://loremflickr.com/800/600/social,marketing', userIndex: 36 },
+  { content: 'New Shopify store launched for a local clothing brand — custom theme, upsell funnels, abandoned cart emails! 🛒 Speed score: 94/100.', tags: ['shopify', 'ecommerce', 'webdev'], imageUrl: 'https://loremflickr.com/800/600/ecommerce,shopping', userIndex: 37 },
+  { content: 'Client transformation after 12 weeks of personalized training — down 8kg, body fat from 28% to 19%! 💪 Programs available in BGC.', tags: ['fitness', 'training', 'transformation'], imageUrl: 'https://loremflickr.com/800/600/fitness,gym', userIndex: 38 },
+  { content: 'Student passed the LTO written exam on the FIRST try! 🚗 5-session program covering traffic signs, road rules, and defensive driving.', tags: ['driving', 'lto', 'lessons'], imageUrl: 'https://loremflickr.com/800/600/driving,car', userIndex: 39 },
 ];
 
 // ─── Reels (at least 1 per worker — 40 reels) ───────────────────────────────
@@ -771,6 +819,7 @@ async function seed() {
         selfieUrl: SELFIE_IMG,
         selfieVerified: true,
         resumeUrl: 'https://res.cloudinary.com/demo/raw/upload/sample.pdf',
+        coords: { type: 'Point', coordinates: USER_COORDS[i] },
         portfolio: [{
           title: u.skills[0],
           description: `Sample work: ${u.skills.slice(0, 3).join(', ')}`,
@@ -817,7 +866,7 @@ async function seed() {
         duration: r.duration,
         author: createdUsers[r.userIndex]._id,
         videoUrl: SAMPLE_VIDEOS[i % SAMPLE_VIDEOS.length],
-        thumbnailUrl: `https://picsum.photos/seed/reel${i + 1}/400/700`,
+        thumbnailUrl: `https://loremflickr.com/400/700/${(r.detectedSkills?.[0] || 'work').toLowerCase().replace(/\s+/g, ',')}`,
       }))
     );
     console.log(`  Created ${createdReels.length} reels`);

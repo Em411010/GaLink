@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Star, MapPin, MessageCircle, Briefcase } from "lucide-react";
+import { Star, MapPin, MessageCircle, Briefcase, Navigation } from "lucide-react";
 import { UserBadges } from "../badge/BadgeSystem";
 
 export default function FreelancerCard({ freelancer }) {
@@ -81,12 +81,18 @@ export default function FreelancerCard({ freelancer }) {
           </div>
         )}
 
-        {/* ── Meta: location + experience ── */}
+        {/* ── Meta: location + distance + experience ── */}
         <div className="flex items-center gap-3 text-xs text-base-content/50">
-          {freelancer.location?.address && (
+          {freelancer.location && (
             <span className="flex items-center gap-1 truncate">
               <MapPin size={11} className="shrink-0" />
-              <span className="truncate">{freelancer.location.address.split(",")[0]}</span>
+              <span className="truncate">{freelancer.location.split(",")[0]}</span>
+            </span>
+          )}
+          {freelancer.distanceKm !== undefined && (
+            <span className="flex items-center gap-1 shrink-0 text-primary font-medium">
+              <Navigation size={11} />
+              {freelancer.distanceKm} km
             </span>
           )}
           {freelancer.experience > 0 && (

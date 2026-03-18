@@ -87,7 +87,21 @@ Examples:
 - "may sira sa kuryente" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Electrical issues can be really worrying, I completely understand! To connect you with the right electrician, could you tell me a little more about what's happening? For example, is it a tripped breaker, a dead outlet, flickering lights, or no power in a specific room?","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
 - "help" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Of course, I'm right here with you! To make sure I find exactly the right person, could you tell me a little more about what's going on? Is it something at home — like a repair or plumbing issue — or more of a professional service like tech or design? Just tell me in your own words, no worries!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
 - "ayos na, salamat" → {"needsService":false,"isGeneric":false,"clarificationQuestion":"","empathyLine":"That's wonderful to hear! You took care of it — that's great. We're always here whenever you need a hand with anything.","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
-- "My sink has been leaking nonstop since yesterday" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"A non-stop leaking sink is so stressful — the constant dripping and worry about water damage is a lot to deal with overnight. Let's get this sorted for you right away!","problemType":"Plumbing repair","requiredSkills":["Plumbing","Pipe Fitting","Leak Detection"],"urgencyLevel":"HIGH","locationRelevant":true,"summary":"Leaking sink repair"}${languageOverride}`;
+SKILL NORMALIZATION RULE:
+For "requiredSkills", ONLY use broad trade/profession labels — never specific sub-tasks or task descriptions. Match to the TRADE, not the task. Keep to 1–2 labels max.
+Examples of correct normalization:
+- Fix broken door, window, cabinet, furniture → ["Carpentry"]
+- Leaking pipe, clogged drain, no hot water, faucet dripping → ["Plumbing"]
+- Broken outlet, rewiring, no power in room, flickering lights → ["Electrical"]
+- Repaint walls, exterior/interior painting → ["Painting"]
+- Aircon not cooling, AC cleaning, install aircon → ["Aircon Repair"]
+- Car engine, brake problem, flat tire, transmission → ["Automotive Mechanic"]
+- Build a website, fix web app, e-commerce → ["Web Development"]
+- Logo, flyer, poster, social media graphics → ["Graphic Design"]
+- Math/English tutoring, academic coaching → ["Tutoring"]
+NEVER output sub-tasks as skills. Wrong: ["Door Repair","Pipe Fitting","Leak Detection"]. Right: ["Carpentry"], ["Plumbing"].
+
+- "My sink has been leaking nonstop since yesterday" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"A non-stop leaking sink is so stressful — the constant dripping and worry about water damage is a lot to deal with overnight. Let's get this sorted for you right away!","problemType":"Plumbing repair","requiredSkills":["Plumbing"],"urgencyLevel":"HIGH","locationRelevant":true,"summary":"Leaking sink repair"}${languageOverride}`;
 
   const completion = await getOpenAI().chat.completions.create({
     model: "gpt-3.5-turbo",
@@ -233,48 +247,50 @@ export async function recommendSeminars(userSkills = [], badgeLevel = 0) {
     ? `The user is a Filipino freelancer/worker with these skills: ${userSkills.slice(0, 6).join(", ")}. Badge level: ${badgeLevel}.`
     : `The user is a new/unverified user in Metro Manila with no profile skills yet (badge level: ${badgeLevel}).`;
 
-  // Real Philippine Facebook pages with working events tabs
-  const REAL_FB_PAGES = {
+  // Real online workshop and seminar platforms
+  const REAL_WORKSHOP_SITES = {
     Tech: [
-      { organizer: "DICT Philippines", link: "https://www.facebook.com/dict.gov.ph/events" },
-      { organizer: "Google Developer Groups Philippines", link: "https://www.facebook.com/gdgph/events" },
-      { organizer: "AWS User Group Philippines", link: "https://www.facebook.com/AWSUGPhilippines/events" },
-      { organizer: "Philippine Software Industry Association", link: "https://www.facebook.com/psiaorgph/events" },
-      { organizer: "TechTalks.ph Community", link: "https://www.facebook.com/techtalksPH/events" },
+      { organizer: "DICT e-Learning Portal", link: "https://elearning.dict.gov.ph" },
+      { organizer: "TESDA Online Program (TOP)", link: "https://top.tesda.gov.ph" },
+      { organizer: "Google Digital Garage", link: "https://learndigital.withgoogle.com/digitalgarage" },
+      { organizer: "Coursera", link: "https://www.coursera.org/search?query=technology" },
+      { organizer: "Udemy", link: "https://www.udemy.com/courses/development/" },
     ],
     Trades: [
-      { organizer: "TESDA Philippines", link: "https://www.facebook.com/TESDA.Official/events" },
-      { organizer: "DOLE Philippines", link: "https://www.facebook.com/doleph/events" },
-      { organizer: "TESDA Metro Manila", link: "https://www.facebook.com/TESDAMetroManila/events" },
-      { organizer: "Philippine Institute of Electrical Engineers", link: "https://www.facebook.com/piee.org.ph/events" },
+      { organizer: "TESDA Online Program (TOP)", link: "https://top.tesda.gov.ph" },
+      { organizer: "DOLE BWSC Training Portal", link: "https://bwsc.dole.gov.ph" },
+      { organizer: "Coursera", link: "https://www.coursera.org/search?query=trades" },
+      { organizer: "Udemy", link: "https://www.udemy.com/courses/teaching-academics/" },
     ],
     Business: [
-      { organizer: "DTI Philippines", link: "https://www.facebook.com/DTIPhilippines/events" },
-      { organizer: "Philippine Chamber of Commerce and Industry", link: "https://www.facebook.com/philippinechamber/events" },
-      { organizer: "Go Negosyo", link: "https://www.facebook.com/GoNegosyo/events" },
-      { organizer: "Philippine Franchise Association", link: "https://www.facebook.com/PhilFranchise/events" },
+      { organizer: "DTI SMED Training", link: "https://smed.dti.gov.ph" },
+      { organizer: "Go Negosyo Events", link: "https://gonegosyo.net/events" },
+      { organizer: "Coursera Business", link: "https://www.coursera.org/search?query=business" },
+      { organizer: "Udemy Business", link: "https://www.udemy.com/courses/business/" },
     ],
     Creative: [
-      { organizer: "Creative Economy Council of the Philippines", link: "https://www.facebook.com/creativeph/events" },
-      { organizer: "Philippine Graphic Arts Guild", link: "https://www.facebook.com/pgag.ph/events" },
-      { organizer: "Film Academy of the Philippines", link: "https://www.facebook.com/FilmAcademyPH/events" },
+      { organizer: "Canva Design School", link: "https://www.canva.com/learn/" },
+      { organizer: "Adobe Education Exchange", link: "https://edex.adobe.com" },
+      { organizer: "Coursera Arts & Design", link: "https://www.coursera.org/search?query=design" },
+      { organizer: "Udemy Design", link: "https://www.udemy.com/courses/design/" },
     ],
     "Soft Skills": [
-      { organizer: "PMAP – People Management Association of the Philippines", link: "https://www.facebook.com/pmaphrm/events" },
-      { organizer: "Toastmasters Philippines", link: "https://www.facebook.com/ToastmastersPhilippines/events" },
-      { organizer: "Dale Carnegie Philippines", link: "https://www.facebook.com/DaleCarnegiePhilippines/events" },
+      { organizer: "Dale Carnegie Training", link: "https://www.dalecarnegie.com/en/courses" },
+      { organizer: "Toastmasters International", link: "https://www.toastmasters.org/find-a-club" },
+      { organizer: "LinkedIn Learning", link: "https://www.linkedin.com/learning/" },
+      { organizer: "Coursera Personal Development", link: "https://www.coursera.org/search?query=soft+skills" },
     ],
   };
 
-  const pagesJson = JSON.stringify(REAL_FB_PAGES);
+  const sitesJson = JSON.stringify(REAL_WORKSHOP_SITES);
 
   const systemPrompt = `You are a seminar and workshop recommender for Filipino workers and freelancers in Metro Manila.
 Today's date: ${today}.
 
 ${context}
 
-You have access to these REAL Philippine Facebook event pages, organized by category:
-${pagesJson}
+You have access to these REAL online workshop and seminar platforms, organized by category:
+${sitesJson}
 
 Generate 5 realistic, relevant seminar/workshop recommendations for this user.
 ${!hasSkills ? "Include: 2 Tech, 2 Trades, 1 Business." : "Tailor 3 seminars to their skills, add 2 complementary growth seminars."}

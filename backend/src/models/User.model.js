@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema({
   profilePhoto: { type: String, default: "" },
   bio: { type: String, default: "", maxlength: 500 },
   location: { type: String, default: "" },
+  coords: {
+    type: { type: String, enum: ["Point"], default: "Point" },
+    coordinates: { type: [Number] }, // [longitude, latitude]
+  },
   skills: [{ type: String, trim: true }],
   experience: { type: String, default: "" },
   hourlyRate: { type: Number, default: 0 },
@@ -19,6 +23,7 @@ const userSchema = new mongoose.Schema({
   isOpenForWork: { type: Boolean, default: false },
   resumeUrl: { type: String, default: "" },
   resumeText: { type: String, default: "" },
+  resumeUploadedAt: { type: Date, default: null },
   portfolio: [{ title: String, description: String, imageUrl: String, link: String }],
 
   // ── Verification / Badge System ──────────────────────────────────────────
@@ -61,5 +66,6 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 userSchema.index({ skills: 1 });
 userSchema.index({ location: 1 });
 userSchema.index({ isFreelancer: 1 });
+userSchema.index({ coords: "2dsphere" }, { sparse: true });
 const User = mongoose.model("User", userSchema);
 export default User;

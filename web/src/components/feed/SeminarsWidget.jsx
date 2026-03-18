@@ -23,7 +23,7 @@ export default function SeminarsWidget() {
     if (isRefresh) setRefreshing(true);
     else setLoading(true);
     try {
-      const res = await userAPI.getSeminars();
+      const res = await userAPI.getSeminars(isRefresh);
       setSeminars(res.data || []);
     } catch {
       setSeminars([]);
@@ -156,7 +156,7 @@ export default function SeminarsWidget() {
 
         {/* Footer note */}
         <p className="text-[9px] text-base-content/30 text-center">
-          AI-matched · Links go to official Facebook event pages
+          AI-matched · Links go to official workshop &amp; seminar platforms
         </p>
       </div>
     </div>

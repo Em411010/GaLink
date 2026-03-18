@@ -1,8 +1,9 @@
 ﻿import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 import useAuthStore from "./store/useAuthStore";
 import useThemeStore from "./store/useThemeStore";
+import { userAPI } from "./services/api";
 import Layout from "./components/layout/Layout";
 import AdminLayout from "./components/layout/AdminLayout";
 import LandingPage from "./pages/LandingPage";
@@ -35,9 +36,26 @@ function GuestRoute({ children }) {
   return !user ? children : <Navigate to="/feed" replace />;
 }
 export default function App() {
-  const { fetchMe } = useAuthStore();
+  const { fetchMe, user } = useAuthStore();
   const { theme } = useThemeStore();
+  const locationSent = useRef(false);
+
   useEffect(() => { fetchMe(); }, []);
+
+  // Keep user's GPS location up to date whenever they are logged in
+  useEffect(() => {
+    if (!user || locationSent.current) return;
+    if (!navigator.geolocation) return;
+    locationSent.current = true;
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        userAPI.updateLocation({ lat: coords.latitude, lng: coords.longitude }).catch(() => {});
+      },
+      () => { locationSent.current = false; }, // reset so it can retry later
+      { timeout: 8000, maximumAge: 300000 }
+    );
+  }, [user]);
+
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);

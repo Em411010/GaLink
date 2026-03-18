@@ -1,4 +1,29 @@
-﻿import User from "../models/User.model.js";
+﻿import { Readable } from "stream";
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+const mammoth = require("mammoth");
+const pdfjsLib = require("pdfjs-dist/legacy/build/pdf.js");
+
+async function extractPdfText(buffer) {
+  const doc = await pdfjsLib.getDocument({
+    data: new Uint8Array(buffer),
+    verbosity: 0,
+    useWorkerFetch: false,
+    isEvalSupported: false,
+    useSystemFonts: true,
+    disableAutoFetch: true,
+    disableStream: true,
+  }).promise;
+  let text = "";
+  for (let i = 1; i <= doc.numPages; i++) {
+    const page = await doc.getPage(i);
+    const content = await page.getTextContent();
+    text += content.items.map((el) => ("str" in el ? el.str : "")).join(" ") + "\n";
+  }
+  return text.trim();
+}
+import User from "../models/User.model.js";
+import cloudinary from "../config/cloudinary.js";
 import { extractResumeData, recommendSeminars } from "../services/ai.service.js";
 import { refreshBadge } from "../services/badge.service.js";
 
@@ -55,11 +80,38 @@ export async function updateProfile(req, res, next) {
 export async function uploadResume(req, res, next) {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
-    const resumeUrl = req.file.path;
-    const extractedData = await extractResumeData(req.file.originalname || "resume").catch(() => ({ skills: [], experienceYears: 0, summary: "" }));
-    const updateData = { resumeUrl, isFreelancer: true };
-    if (extractedData.skills?.length) updateData.skills = [...new Set([...req.user.skills, ...extractedData.skills])];
+
+    // 1. Extract text from the in-memory buffer
+    let resumeText = "";
+    try {
+      if (req.file.mimetype === "application/pdf") {
+        resumeText = await extractPdfText(req.file.buffer);
+      } else {
+        // doc / docx
+        const result = await mammoth.extractRawText({ buffer: req.file.buffer });
+        resumeText = result.value || "";
+      }
+    } catch { resumeText = ""; }
+
+    // 2. Upload buffer to Cloudinary
+    const resumeUrl = await new Promise((resolve, reject) => {
+      const stream = cloudinary.uploader.upload_stream(
+        { folder: "galink/resumes", resource_type: "raw", public_id: `resume_${req.user._id}_${Date.now()}` },
+        (err, result) => (err ? reject(err) : resolve(result.secure_url))
+      );
+      Readable.from(req.file.buffer).pipe(stream);
+    });
+
+    // 3. AI extraction from actual resume text
+    const extractedData = resumeText
+      ? await extractResumeData(resumeText).catch(() => ({ skills: [], experienceYears: 0, summary: "" }))
+      : { skills: [], experienceYears: 0, summary: "" };
+
+    // 4. Build update — replace skills entirely with AI-extracted ones
+    const updateData = { resumeUrl, resumeText, isFreelancer: true, resumeUploadedAt: new Date() };
+    if (extractedData.skills?.length) updateData.skills = extractedData.skills;
     if (extractedData.summary) updateData.bio = extractedData.summary;
+
     const user = await User.findByIdAndUpdate(req.user._id, updateData, { new: true }).select("-password -chatbotQueries -resumeText");
     await refreshBadge(user);
     res.json({ user, extractedData });
@@ -72,6 +124,22 @@ export async function toggleAvailability(req, res, next) {
     user.isOpenForWork = !user.isOpenForWork;
     await user.save();
     res.json({ isOpenForWork: user.isOpenForWork });
+  } catch (error) { next(error); }
+}
+
+export async function updateLocation(req, res, next) {
+  try {
+    const { lat, lng, address } = req.body;
+    if (typeof lat !== "number" || typeof lng !== "number") {
+      return res.status(400).json({ message: "lat and lng must be numbers" });
+    }
+    const update = {
+      coords: { type: "Point", coordinates: [lng, lat] },
+    };
+    if (address) update.location = address;
+    const user = await User.findByIdAndUpdate(req.user._id, update, { new: true })
+      .select("location coords");
+    res.json({ location: user.location, coords: user.coords });
   } catch (error) { next(error); }
 }
 
@@ -125,8 +193,9 @@ export async function getSuggestedUsers(req, res, next) {
 export async function getSeminars(req, res, next) {
   try {
     const userId = req.user._id.toString();
+    const forceRefresh = req.query.refresh === "true";
     const cached = seminarCache.get(userId);
-    if (cached && Date.now() - cached.ts < SEMINAR_TTL) {
+    if (!forceRefresh && cached && Date.now() - cached.ts < SEMINAR_TTL) {
       return res.json(cached.data);
     }
     const seminars = await recommendSeminars(req.user.skills || [], req.user.badgeLevel || 0);

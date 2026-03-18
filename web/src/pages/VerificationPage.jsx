@@ -175,7 +175,12 @@ export default function VerificationPage() {
       const fd = new FormData();
       fd.append("resume", file);
       const res = await userAPI.uploadResume(fd);
-      toast.success("Resume uploaded!");
+      const skillCount = res.data.extractedData?.skills?.length || 0;
+      toast.success(
+        skillCount > 0
+          ? `Resume uploaded! ${skillCount} skill${skillCount > 1 ? "s" : ""} auto-extracted.`
+          : "Resume uploaded!"
+      );
       updateUser(res.data.user);
       await fetchStatus();
     } catch {
@@ -591,18 +596,6 @@ export default function VerificationPage() {
               {isLoading ? <Loader2 size={14} className="animate-spin" /> : <><FileText size={14} /> Upload</>}
             </label>
           </>
-        );
-      case "skills":
-        return (
-          <a href="/profile" className="btn btn-sm btn-ghost gap-1">
-            <ChevronRight size={14} /> Edit Profile
-          </a>
-        );
-      case "hourlyRate":
-        return (
-          <a href="/profile" className="btn btn-sm btn-ghost gap-1">
-            <ChevronRight size={14} /> Set Rate
-          </a>
         );
       case "portfolio":
         return (

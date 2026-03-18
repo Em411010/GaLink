@@ -23,7 +23,8 @@ export const userAPI = {
   toggleAvailability: () => api.put("/users/availability/toggle"),
   getSidebarData: () => api.get("/users/sidebar/data"),
   getSuggestedUsers: () => api.get("/users/sidebar/suggestions"),
-  getSeminars: () => api.get("/users/sidebar/seminars"),
+  getSeminars: (refresh = false) => api.get("/users/sidebar/seminars", { params: refresh ? { refresh: "true" } : {} }),
+  updateLocation: (data) => api.put("/users/location", data),
 };
 
 // Feed

@@ -21,10 +21,15 @@ export const videoUpload = multer({
   limits: { fileSize: 100 * 1024 * 1024 },
 });
 export const resumeUpload = multer({
-  storage: new CloudinaryStorage({
-    cloudinary,
-    params: { folder: "galink/resumes", resource_type: "raw", allowed_formats: ["pdf","doc","docx"] },
-  }),
+  storage: multer.memoryStorage(),
   limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    const allowed = [
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    ];
+    cb(null, allowed.includes(file.mimetype));
+  },
 });
 export default cloudinary;
