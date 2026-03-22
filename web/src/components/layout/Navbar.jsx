@@ -216,10 +216,10 @@ export default function Navbar() {
         <div className="w-full px-6 h-16 grid grid-cols-3 items-center">
           {/* Logo — left */}
           <Link to="/feed" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:shadow-violet-500/40 transition-shadow">
-              <Sparkles className="w-4.5 h-4.5 text-white" />
+            <div className="w-9 h-9 rounded-xl overflow-hidden bg-white flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:shadow-violet-500/40 transition-shadow">
+              <img src={require('../../assets/Logo_GaLink.png')} alt="GaLink Logo" className="w-full h-full object-contain" />
             </div>
-            <span className="font-bold text-lg bg-gradient-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent hidden sm:block">
+            <span className="font-bold text-lg bg-linear-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent hidden sm:block">
               GaLink
             </span>
           </Link>
@@ -286,7 +286,7 @@ export default function Navbar() {
               >
                 <Bell size={20} strokeWidth={2} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-[18px] h-[18px] px-1 text-[10px] font-bold bg-red-500 text-white rounded-full shadow-sm">
+                  <span className="absolute -top-0.5 -right-0.5 flex items-center justify-center min-w-4.5 h-4.5 px-1 text-[10px] font-bold bg-red-500 text-white rounded-full shadow-sm">
                     {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
@@ -327,7 +327,7 @@ export default function Navbar() {
                               {n.sender?.profilePhoto ? (
                                 <img src={n.sender.profilePhoto} alt="" className="w-full h-full object-cover" />
                               ) : (
-                                <div className="bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center w-full h-full text-xs font-bold">
+                                <div className="bg-linear-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center w-full h-full text-xs font-bold">
                                   {n.sender?.name?.charAt(0)?.toUpperCase() || "?"}
                                 </div>
                               )}
@@ -391,7 +391,7 @@ export default function Navbar() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="bg-gradient-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center w-full h-full text-sm font-bold">
+                    <div className="bg-linear-to-br from-violet-500 to-purple-600 text-white flex items-center justify-center w-full h-full text-sm font-bold">
                       {user?.name?.charAt(0)?.toUpperCase() || "?"}
                     </div>
                   )}
@@ -517,7 +517,7 @@ export default function Navbar() {
             <div className="p-1.5 rounded-xl transition-all relative">
               <Bell size={20} strokeWidth={1.5} />
               {unreadCount > 0 && (
-                <span className="absolute -top-0.5 -right-1 min-w-[16px] h-[16px] px-0.5 text-[9px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center">
+                <span className="absolute -top-0.5 -right-1 min-w-4 h-4 px-0.5 text-[9px] font-bold bg-red-500 text-white rounded-full flex items-center justify-center">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
