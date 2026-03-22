@@ -281,7 +281,7 @@ export default function ProfilePage() {
       </div>
       <BadgeCard level={profile.badgeLevel} showUpgrade={isOwnProfile} />
 
-      {isOwnProfile && profile.badgeLevel < 3 && (
+      {isOwnProfile && profile.badgeLevel < 2 && (
         <div className="card bg-base-100 shadow-md">
           <div className="card-body text-center">
             <Shield className="mx-auto text-primary mb-2" size={40} />

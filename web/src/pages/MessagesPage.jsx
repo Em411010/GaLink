@@ -56,6 +56,7 @@ export default function MessagesPage() {
   const [attachFile, setAttachFile] = useState(null);  // File | null
   const [attachPreview, setAttachPreview] = useState(null); // object URL
   const [confirmDeleteId, setConfirmDeleteId] = useState(null); // msgId awaiting confirm
+  const [confirmClearAll, setConfirmClearAll] = useState(false); // clear all messages confirm
   const [modifyContractId, setModifyContractId] = useState(null); // contract msg _id showing modify input
   const [modifyText, setModifyText] = useState("");
   const [showContractModal, setShowContractModal] = useState(false);
@@ -129,6 +130,15 @@ export default function MessagesPage() {
     socketRef.current.on("message:deleted", ({ msgId }) => {
       setMessages((prev) =>
         prev.map((m) => (m._id === msgId ? { ...m, deleted: true, text: "", attachments: [] } : m))
+      );
+    });
+
+    socketRef.current.on("conversation:cleared", ({ convId }) => {
+      setMessages((prev) =>
+        prev.map((m) => m.conversation === convId || m.conversation?._id === convId
+          ? { ...m, deleted: true, text: "", attachments: [] }
+          : m
+        )
       );
     });
 
@@ -241,6 +251,26 @@ export default function MessagesPage() {
     setConfirmDeleteId(msg._id);
   };
 
+  const handleClearAll = () => setConfirmClearAll(true);
+
+  const confirmClearAllMessages = async () => {
+    if (!activeConversation) return;
+    setConfirmClearAll(false);
+    // Optimistic update
+    setMessages((prev) => prev.map((m) => ({ ...m, deleted: true, text: "", attachments: [] })));
+    setConversations((prev) =>
+      prev.map((c) => (c._id === activeConversation._id ? { ...c, lastMessage: { text: "", timestamp: new Date() } } : c))
+    );
+    try {
+      await messageAPI.clearConversation(activeConversation._id);
+      toast.success("All messages cleared");
+    } catch {
+      toast.error("Failed to clear messages");
+      // Refetch on failure
+      messageAPI.getMessages(activeConversation._id).then((res) => setMessages(res.data || []));
+    }
+  };
+
   const confirmDelete = async (msg) => {
     setConfirmDeleteId(null);
     // Optimistic update — mark deleted instantly in local state
@@ -284,6 +314,24 @@ export default function MessagesPage() {
   return (
     <AccessGate requiredLevel={1} currentLevel={user?.badgeLevel || 0} feature="Messaging">
     <div className="h-[calc(100vh-120px)] flex gap-0 md:gap-4">
+      {confirmClearAll && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+          onClick={() => setConfirmClearAll(false)}
+        >
+          <div
+            className="bg-base-100 rounded-2xl shadow-xl p-6 w-80 flex flex-col gap-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="font-bold text-base">Clear all messages?</h3>
+            <p className="text-sm text-base-content/60">All messages in this conversation will be permanently deleted. This cannot be undone.</p>
+            <div className="flex gap-2 justify-end">
+              <button className="btn btn-ghost btn-sm" onClick={() => setConfirmClearAll(false)}>Cancel</button>
+              <button className="btn btn-error btn-sm" onClick={confirmClearAllMessages}>Clear All</button>
+            </div>
+          </div>
+        </div>
+      )}
       {confirmDeleteMsg && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
@@ -426,14 +474,25 @@ export default function MessagesPage() {
                   )}
                 </div>
               </button>
-              <a
-                href={`/profile/${activeOther._id}`}
-                target="_blank"
-                rel="noreferrer"
-                className="ml-auto btn btn-ghost btn-xs gap-1"
-              >
-                <ExternalLink size={13} /> View Profile
-              </a>
+              <div className="ml-auto flex items-center gap-1">
+                {activeConversation && messages.some((m) => !m.deleted) && (
+                  <button
+                    className="btn btn-ghost btn-xs gap-1 text-error hover:bg-error/10"
+                    onClick={handleClearAll}
+                    title="Clear all messages"
+                  >
+                    <Trash2 size={13} /> Clear All
+                  </button>
+                )}
+                <a
+                  href={`/profile/${activeOther._id}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn btn-ghost btn-xs gap-1"
+                >
+                  <ExternalLink size={13} /> View Profile
+                </a>
+              </div>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
               {groups.map((item) => {

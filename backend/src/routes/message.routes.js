@@ -1,5 +1,5 @@
 ﻿import { Router } from "express";
-import { getConversations, getOrCreateConversation, getMessages, sendMessage, markAsRead, deleteMessage } from "../controllers/message.controller.js";
+import { getConversations, getOrCreateConversation, getMessages, sendMessage, markAsRead, deleteMessage, clearConversation } from "../controllers/message.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
 import { requireBadge } from "../middleware/badge.middleware.js";
 import { imageUpload } from "../config/cloudinary.js";
@@ -11,4 +11,5 @@ router.get("/conversations/:convId", protect, requireBadge(1), getMessages);
 router.post("/conversations/:convId", protect, requireBadge(1), imageUpload.single("attachment"), sendMessage);
 router.put("/conversations/:convId/read", protect, requireBadge(1), markAsRead);
 router.delete("/conversations/:convId/messages/:msgId", protect, requireBadge(1), deleteMessage);
+router.delete("/conversations/:convId/messages", protect, requireBadge(1), clearConversation);
 export default router;
