@@ -54,6 +54,7 @@ export const messageAPI = {
     api.post(`/messages/conversations/${conversationId}`, formData, { headers: { "Content-Type": "multipart/form-data" } }),
   markAsRead: (conversationId) => api.put(`/messages/conversations/${conversationId}/read`),
   deleteMessage: (conversationId, msgId) => api.delete(`/messages/conversations/${conversationId}/messages/${msgId}`),
+  clearConversation: (conversationId) => api.delete(`/messages/conversations/${conversationId}/messages`),
 };
 
 // Reels

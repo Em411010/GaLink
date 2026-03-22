@@ -109,3 +109,26 @@ export async function deleteMessage(req, res, next) {
   } catch (error) { next(error); }
 }
 
+export async function clearConversation(req, res, next) {
+  try {
+    const conv = await Conversation.findById(req.params.convId);
+    if (!conv) return res.status(404).json({ message: "Conversation not found" });
+    if (!conv.participants.map(String).includes(req.user._id.toString()))
+      return res.status(403).json({ message: "Not a participant" });
+
+    // Soft-delete all messages in the conversation
+    await Message.updateMany(
+      { conversation: req.params.convId },
+      { $set: { deleted: true, text: "", attachments: [] } }
+    );
+
+    // Clear last message preview
+    await Conversation.findByIdAndUpdate(req.params.convId, {
+      lastMessage: { text: "", sender: req.user._id, timestamp: new Date() },
+    });
+
+    getIO().to(req.params.convId).emit("conversation:cleared", { convId: req.params.convId });
+    res.json({ ok: true });
+  } catch (error) { next(error); }
+}
+
