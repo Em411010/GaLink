@@ -5,7 +5,17 @@ const transporter = nodemailer.createTransport({
   port: smtpPort,
   secure: smtpPort === 465,
   auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  connectionTimeout: 10000,
+  greetingTimeout: 10000,
+  socketTimeout: 15000,
 });
+
+if (process.env.SMTP_USER) {
+  transporter.verify((error) => {
+    if (error) console.error("[SMTP] Connection failed:", error.message);
+    else console.log("[SMTP] Connection verified — ready to send emails");
+  });
+}
 export async function sendOtpEmail(email, otp) {
   if (!process.env.SMTP_USER) {
     console.warn("SMTP_USER not set — skipping OTP email");
