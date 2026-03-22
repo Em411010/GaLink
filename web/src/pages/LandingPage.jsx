@@ -114,8 +114,6 @@ const features = [
 export default function LandingPage() {
   return (
     <div className="min-h-screen bg-base-100 overflow-x-hidden">
-
-      {/* ── Navbar ───────────────────────────────────────────────── */}
       <nav className="fixed top-0 w-full z-50 backdrop-blur-md bg-base-100/80 border-b border-base-200">
         <div className="w-full px-4 sm:px-8 lg:px-16 h-16 flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -134,18 +132,13 @@ export default function LandingPage() {
           </div>
         </div>
       </nav>
-
-      {/* ── Hero ─────────────────────────────────────────────────── */}
       <section className="relative pt-32 pb-24 overflow-hidden">
-        {/* Background blobs */}
         <div className="absolute top-20 left-1/4 w-[900px] h-[600px] bg-gradient-to-r from-violet-600/20 via-purple-500/10 to-blue-500/20 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute top-40 right-0 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-violet-500/10 rounded-full blur-3xl pointer-events-none" />
 
         <div className="w-full px-4 sm:px-8 lg:px-16 relative">
           <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-20">
-
-            {/* Left: Text */}
             <div className="flex-1 text-left">
               <div className="inline-flex items-center gap-2 bg-violet-500/10 border border-violet-500/20 text-violet-400 text-sm px-4 py-1.5 rounded-full mb-6">
                 <Sparkles className="w-3.5 h-3.5" />
@@ -180,8 +173,6 @@ export default function LandingPage() {
                 </Link>
               </div>
             </div>
-
-            {/* Right: Floating skilled worker cards */}
             <div className="hidden lg:block flex-1 relative h-96 w-full max-w-lg">
               {floatingCards.map((card, i) => (
                 <div
@@ -220,8 +211,6 @@ export default function LandingPage() {
                   </div>
                 </div>
               ))}
-
-              {/* AI match badge */}
               <div className="absolute bottom-0 right-0 z-10 bg-gradient-to-br from-violet-600 to-purple-700 text-white rounded-2xl px-4 py-3 shadow-2xl shadow-violet-500/30"
                 style={{ animation: "float 2.5s ease-in-out infinite alternate" }}>
                 <div className="flex items-center gap-2">
@@ -234,8 +223,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* ── Problem ──────────────────────────────────────────────── */}
       <section className="py-20 bg-base-200/50">
         <div className="w-full px-4 sm:px-8 lg:px-16">
           <div className="flex flex-col lg:flex-row gap-12 lg:gap-20 items-start">
@@ -262,8 +249,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* ── How It Works ─────────────────────────────────────────── */}
       <section className="py-24">
         <div className="w-full px-4 sm:px-8 lg:px-16">
           <div className="mb-16">
@@ -272,7 +257,6 @@ export default function LandingPage() {
           </div>
 
           <div className="grid md:grid-cols-3 gap-6 relative">
-            {/* Connector line */}
             <div className="hidden md:block absolute top-10 left-[calc(16.6%+2rem)] right-[calc(16.6%+2rem)] h-0.5 bg-gradient-to-r from-violet-500 via-blue-500 to-emerald-500 opacity-30" />
 
             {steps.map((step, i) => (
@@ -290,8 +274,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* ── Demo Teaser ──────────────────────────────────────────── */}
       <section className="py-20 bg-base-200/50">
         <div className="w-full px-4 sm:px-8 lg:px-16">
           <div className="mb-12">
@@ -300,7 +282,6 @@ export default function LandingPage() {
           </div>
 
           <div className="bg-base-100 border border-base-300 rounded-3xl overflow-hidden shadow-2xl">
-            {/* Fake browser bar */}
             <div className="bg-base-200 px-4 py-3 flex items-center gap-2 border-b border-base-300">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-error/60" />
@@ -311,8 +292,6 @@ export default function LandingPage() {
                 <span className="text-xs text-base-content/40">galink.app/chatbot</span>
               </div>
             </div>
-
-            {/* Mock chatbot UI */}
             <div className="p-6 grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
                 <p className="text-xs text-base-content/40 uppercase tracking-wider font-semibold mb-4">AI Chat</p>
@@ -363,8 +342,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* ── Features ─────────────────────────────────────────────── */}
       <section className="py-24">
         <div className="w-full px-4 sm:px-8 lg:px-16">
           <div className="mb-16">
@@ -385,8 +362,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* ── Bottom CTA ───────────────────────────────────────────── */}
       <section className="py-24 px-4 sm:px-8 lg:px-16">
         <div className="w-full">
             <div className="relative bg-gradient-to-br from-violet-600 via-purple-600 to-blue-600 rounded-3xl p-6 sm:p-12 overflow-hidden">
@@ -424,8 +399,6 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
-
-      {/* ── Footer ───────────────────────────────────────────────── */}
       <footer className="border-t border-base-200 py-8">
         <div className="w-full px-4 sm:px-8 lg:px-16 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
@@ -445,8 +418,6 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
-
-      {/* Float animation */}
       <style>{`
         @keyframes float {
           from { transform: translateY(0px); }

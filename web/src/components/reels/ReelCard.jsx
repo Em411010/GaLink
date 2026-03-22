@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Heart, Volume2, VolumeX, MapPin, Eye } from "lucide-react";
 import { reelAPI } from "../../services/api";
 import useAuthStore from "../../store/useAuthStore";
@@ -31,7 +31,6 @@ export default function ReelCard({ reel, isActive, muted, onToggleMute }) {
 
   return (
     <div className="relative w-full h-full bg-black">
-      {/* Video */}
       <video
         ref={videoRef}
         src={reel.videoUrl}
@@ -41,13 +40,8 @@ export default function ReelCard({ reel, isActive, muted, onToggleMute }) {
         playsInline
         preload="metadata"
       />
-
-      {/* Gradient overlays */}
       <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-transparent to-black/20 pointer-events-none" />
-
-      {/* Right side action buttons */}
       <div className="absolute right-3 bottom-24 flex flex-col items-center gap-6 z-10">
-        {/* Author avatar */}
         <Link to={`/profile/${reel.author?._id}`} className="relative">
           <div className="w-11 h-11 rounded-full overflow-hidden ring-2 ring-white shadow-lg">
             {reel.author?.profilePhoto ? (
@@ -62,8 +56,6 @@ export default function ReelCard({ reel, isActive, muted, onToggleMute }) {
             <span className="text-white text-[10px] font-bold">+</span>
           </div>
         </Link>
-
-        {/* Like */}
         <button onClick={handleLike} className="flex flex-col items-center gap-1">
           <Heart
             size={30}
@@ -73,24 +65,18 @@ export default function ReelCard({ reel, isActive, muted, onToggleMute }) {
           />
           <span className="text-white text-xs font-semibold drop-shadow">{likes}</span>
         </button>
-
-        {/* Views */}
         <div className="flex flex-col items-center gap-1">
           <Eye size={28} className="text-white" strokeWidth={1.5} />
           <span className="text-white text-xs font-semibold drop-shadow">
             {reel.views > 999 ? `${(reel.views / 1000).toFixed(1)}K` : reel.views}
           </span>
         </div>
-
-        {/* Mute toggle */}
         <button onClick={onToggleMute}>
           {muted
             ? <VolumeX size={28} className="text-white" strokeWidth={1.5} />
             : <Volume2 size={28} className="text-white" strokeWidth={1.5} />}
         </button>
       </div>
-
-      {/* Bottom info */}
       <div className="absolute bottom-6 left-4 right-20 z-10">
         <Link to={`/profile/${reel.author?._id}`} className="flex items-center gap-2 mb-2">
           <span className="text-white font-bold text-sm drop-shadow">{reel.author?.name}</span>

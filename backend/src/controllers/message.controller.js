@@ -42,6 +42,10 @@ export async function getMessages(req, res, next) {
     const messages = await Message.find({ conversation: req.params.convId })
       .populate("sender", "name profilePhoto")
       .populate({ path: "replyTo", populate: { path: "sender", select: "name" } })
+      .populate({ path: "contract", populate: [
+        { path: "hirer", select: "name profilePhoto" },
+        { path: "freelancer", select: "name profilePhoto" },
+      ]})
       .sort({ createdAt: 1 });
     res.json(messages);
   } catch (error) { next(error); }

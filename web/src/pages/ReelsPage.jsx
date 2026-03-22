@@ -90,7 +90,6 @@ export default function ReelsPage() {
   return (
     // Break out of layout padding to go full-width/height
     <div className="-mx-4 -my-6 -mb-20 md:-mb-6 relative">
-      {/* Snap-scroll feed */}
       <div
         className="overflow-y-scroll snap-y snap-mandatory"
         style={{ height: "calc(100vh - 4rem)", scrollbarWidth: "none" }}
@@ -102,7 +101,6 @@ export default function ReelsPage() {
             className="snap-start w-full flex items-center justify-center bg-base-200"
             style={{ height: "calc(100vh - 4rem)" }}
           >
-            {/* Portrait phone-sized container (9:16) */}
             <div
               className="relative overflow-hidden sm:rounded-2xl sm:shadow-2xl"
               style={{
@@ -115,8 +113,6 @@ export default function ReelsPage() {
           </div>
         ))}
       </div>
-
-      {/* Upload FAB (freelancers only) */}
       {user?.isFreelancer && (
         <button
           onClick={() => setShowCreate(true)}
@@ -126,8 +122,6 @@ export default function ReelsPage() {
           <Plus size={22} />
         </button>
       )}
-
-      {/* Upload modal */}
       {showCreate && (
         <div className="fixed inset-0 z-30 flex items-end sm:items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowCreate(false)}>
           <div

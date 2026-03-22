@@ -244,17 +244,13 @@ export default function VerificationPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-10">
-      {/* ── Header ──────────────────────────────────────────────── */}
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-extrabold tracking-tight">Verification Center</h1>
         <p className="text-base-content/60">Complete steps to unlock platform features</p>
       </div>
-
-      {/* ── Data Privacy Terms & Agreement ─────────────────────── */}
       {!agreedToTerms && (
         <div className="card border-2 border-primary/40 bg-primary/5 shadow-lg">
           <div className="card-body p-6 space-y-4">
-            {/* Header */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center flex-shrink-0">
                 <Lock size={20} />
@@ -264,11 +260,7 @@ export default function VerificationPage() {
                 <p className="text-xs text-base-content/50">Required before proceeding with verification</p>
               </div>
             </div>
-
-            {/* Divider */}
             <div className="divider my-0" />
-
-            {/* Terms body */}
             <div className="bg-base-100 rounded-xl border border-base-300 p-4 max-h-[calc(100vh-22rem)] overflow-y-auto text-sm space-y-4 leading-relaxed scrollbar-thin">
               <p className="font-bold text-base text-center">TERMS AND CONDITIONS &amp; DATA PRIVACY NOTICE</p>
               <p className="text-base-content/70 text-center text-xs">GaLink Platform — Verification Center<br />In accordance with Republic Act No. 10173 (Data Privacy Act of 2012)</p>
@@ -345,8 +337,6 @@ export default function VerificationPage() {
                 </div>
               </div>
             </div>
-
-            {/* Checkbox */}
             <label className="flex items-start gap-3 cursor-pointer select-none group">
               <input
                 type="checkbox"
@@ -358,8 +348,6 @@ export default function VerificationPage() {
                 I have read and understood the Data Privacy Notice above. I voluntarily consent to the collection and processing of my personal data in accordance with <strong>Republic Act No. 10173 (Data Privacy Act of 2012)</strong>.
               </span>
             </label>
-
-            {/* Agree button */}
             <button
               className="btn btn-primary w-full gap-2"
               disabled={!termsChecked}
@@ -371,14 +359,8 @@ export default function VerificationPage() {
           </div>
         </div>
       )}
-
-      {/* ── Verification content (shown only after agreement) ─── */}
       {agreedToTerms && (<>
-
-      {/* ── Current Badge ──────────────────────────────────────── */}
       <BadgeCard level={badgeLevel} />
-
-      {/* ── Progress Bar ───────────────────────────────────────── */}
       <div className="flex items-center gap-1 px-2">
         {[0, 1, 2, 3].map((lvl) => (
           <div key={lvl} className="flex-1 flex items-center gap-1">
@@ -395,8 +377,6 @@ export default function VerificationPage() {
           </div>
         ))}
       </div>
-
-      {/* ── Level Sections ─────────────────────────────────────── */}
       {LEVEL_META.map(({ level, label, emoji, color, accent, description }) => {
         const section = checklist?.[`level${level}`];
         if (!section) return null;
@@ -416,7 +396,6 @@ export default function VerificationPage() {
             }`}
           >
             <div className="card-body p-5">
-              {/* Section header */}
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isUnlocked ? `bg-${accent}/20 ${color}` : "bg-base-200 text-base-content/40"}`}>
                   {level === 1 ? <ShieldCheck size={20} /> : level === 2 ? <Briefcase size={20} /> : <Star size={20} />}
@@ -430,8 +409,6 @@ export default function VerificationPage() {
                 </div>
                 {allDone && <Check className={color} size={22} />}
               </div>
-
-              {/* Checklist items */}
               <div className="space-y-2">
                 {section.items.map((item) => (
                   <div
@@ -448,8 +425,6 @@ export default function VerificationPage() {
                     <span className={`flex-1 text-sm ${item.done ? "line-through text-base-content/40" : "font-medium"}`}>
                       {item.label}
                     </span>
-
-                    {/* Action buttons */}
                     {!item.done && renderAction(item.key)}
                   </div>
                 ))}
@@ -458,8 +433,6 @@ export default function VerificationPage() {
           </div>
         );
       })}
-
-      {/* ── Portfolio Section (for Level 2) ────────────────────── */}
       {badgeLevel >= 1 && (
         <div className="card border border-base-300 shadow-sm">
           <div className="card-body p-5">
@@ -580,7 +553,6 @@ export default function VerificationPage() {
                         </div>
                       )}
                     </div>
-                    {/* Action overlay */}
                     <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                       <button
                         className="btn btn-xs btn-ghost bg-black/50 text-white hover:bg-black/70"

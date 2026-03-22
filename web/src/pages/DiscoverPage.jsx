@@ -34,7 +34,6 @@ export default function DiscoverPage() {
 
   return (
     <div className="max-w-5xl mx-auto">
-      {/* Header */}
       <div className="flex items-center gap-4 mb-6">
         <button onClick={() => navigate(-1)} className="btn btn-ghost btn-sm btn-circle">
           <ArrowLeft size={18} />
@@ -57,8 +56,6 @@ export default function DiscoverPage() {
           )}
         </div>
       </div>
-
-      {/* Results */}
       {loading ? (
         <div className="flex justify-center py-20">
           <span className="loading loading-spinner loading-lg text-primary" />

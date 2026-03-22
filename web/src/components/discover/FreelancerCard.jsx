@@ -1,8 +1,14 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Star, MapPin, MessageCircle, Briefcase, Navigation, DollarSign, CheckCircle } from "lucide-react";
+import { Star, MapPin, MessageCircle, Briefcase, Navigation, CheckCircle, FileText } from "lucide-react";
 import { UserBadges } from "../badge/BadgeSystem";
+import useAuthStore from "../../store/useAuthStore";
+import ContractModal from "../contract/ContractModal";
 
-export default function FreelancerCard({ freelancer }) {
+export default function FreelancerCard({ freelancer, prefill }) {
+  const { user } = useAuthStore();
+  const [showContract, setShowContract] = useState(false);
+  const isOwnCard = user?._id === freelancer._id;
   const matchScore = freelancer.matchScore;
   const matchColor =
     matchScore >= 80 ? "badge-success" :
@@ -12,10 +18,7 @@ export default function FreelancerCard({ freelancer }) {
   return (
     <div className="card bg-base-100 shadow-sm hover:shadow-md transition-shadow border border-base-200">
       <div className="card-body p-4 gap-2">
-
-        {/* ── Header: avatar + name + match pill ── */}
         <div className="flex items-start gap-3">
-          {/* Avatar */}
           <div className="avatar shrink-0">
             <div className="w-11 rounded-full ring ring-primary/20">
               {freelancer.profilePhoto ? (
@@ -27,8 +30,6 @@ export default function FreelancerCard({ freelancer }) {
               )}
             </div>
           </div>
-
-          {/* Name + rating */}
           <div className="flex-1 min-w-0">
             <Link
               to={`/profile/${freelancer._id}`}
@@ -47,8 +48,6 @@ export default function FreelancerCard({ freelancer }) {
               </span>
             </div>
           </div>
-
-          {/* Match badge — shrink-0 so it never wraps or squishes */}
           {matchScore !== undefined && (
             <span
               className={`badge ${matchColor} badge-sm shrink-0 whitespace-nowrap font-semibold`}
@@ -57,15 +56,11 @@ export default function FreelancerCard({ freelancer }) {
             </span>
           )}
         </div>
-
-        {/* ── Bio ── */}
         {freelancer.bio && (
           <p className="text-xs text-base-content/60 line-clamp-2 leading-relaxed">
             {freelancer.bio}
           </p>
         )}
-
-        {/* ── Skills ── */}
         {freelancer.skills?.length > 0 && (
           <div className="flex flex-wrap gap-1">
             {freelancer.skills.slice(0, 4).map((skill, i) => (
@@ -80,8 +75,6 @@ export default function FreelancerCard({ freelancer }) {
             )}
           </div>
         )}
-
-        {/* ── Meta: location + distance + experience + rate ── */}
         <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/50">
           {freelancer.location && (
             <span className="flex items-center gap-1 truncate">
@@ -101,12 +94,6 @@ export default function FreelancerCard({ freelancer }) {
               {freelancer.yearsOfExperience}y exp
             </span>
           )}
-          {freelancer.hourlyRate > 0 && (
-            <span className="flex items-center gap-1 shrink-0">
-              <DollarSign size={11} />
-              ₱{freelancer.hourlyRate}/hr
-            </span>
-          )}
           {freelancer.completedJobs > 0 && (
             <span className="flex items-center gap-1 shrink-0">
               <CheckCircle size={11} />
@@ -114,8 +101,6 @@ export default function FreelancerCard({ freelancer }) {
             </span>
           )}
         </div>
-
-        {/* ── Actions ── */}
         <div className="flex gap-2 mt-1">
           <Link
             to={`/profile/${freelancer._id}`}
@@ -130,7 +115,24 @@ export default function FreelancerCard({ freelancer }) {
             <MessageCircle size={12} />
             Message
           </Link>
+          {!isOwnCard && (
+            <button
+              onClick={() => setShowContract(true)}
+              className="btn btn-secondary btn-xs flex-1 gap-1"
+            >
+              <FileText size={12} />
+              Hire
+            </button>
+          )}
         </div>
+
+        {showContract && (
+          <ContractModal
+            freelancer={freelancer}
+            prefill={prefill || {}}
+            onClose={() => setShowContract(false)}
+          />
+        )}
 
       </div>
     </div>
