@@ -1,4 +1,5 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import GaLinkLogo from "../../assets/Logo_GaLink.png";
 import { useEffect, useRef, useState } from "react";
 import {
   Home,
@@ -234,10 +235,8 @@ export default function Navbar() {
     <>
       <nav className="sticky top-0 z-40 bg-base-100/80 backdrop-blur-xl border-b border-base-content/5">
         <div className="w-full px-6 h-16 grid grid-cols-3 items-center">
-          <Link to="/feed" className="flex items-center gap-2.5 shrink-0 group">
-            <div className="w-9 h-9 rounded-xl overflow-hidden bg-white flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:shadow-violet-500/40 transition-shadow">
-              <img src={require('../../assets/Logo_GaLink.png')} alt="GaLink Logo" className="w-full h-full object-contain" />
-            </div>
+          <Link to="/feed" className="flex items-center gap-0 shrink-0 group">
+            <img src={GaLinkLogo} alt="GaLink Logo" className="w-18 h-18 object-contain drop-shadow-md -mr-2" />
             <span className="font-bold text-lg bg-linear-to-r from-violet-400 to-purple-400 bg-clip-text text-transparent hidden sm:block">
               GaLink
             </span>

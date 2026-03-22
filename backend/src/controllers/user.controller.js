@@ -2,6 +2,9 @@
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
 const mammoth = require("mammoth");
+// Stub browser-only globals so pdfjs-dist skips the canvas polyfill (Node.js has no canvas)
+if (typeof globalThis.DOMMatrix === "undefined") globalThis.DOMMatrix = class DOMMatrix {};
+if (typeof globalThis.Path2D === "undefined") globalThis.Path2D = class Path2D {};
 const pdfjsLib = require("pdfjs-dist/legacy/build/pdf.js");
 
 async function extractPdfText(buffer) {
