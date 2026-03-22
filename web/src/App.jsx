@@ -17,6 +17,8 @@ import MessagesPage from "./pages/MessagesPage";
 import ProfilePage from "./pages/ProfilePage";
 import PostDetailPage from "./pages/PostDetailPage";
 import VerificationPage from "./pages/VerificationPage";
+import ContractsPage from "./pages/ContractsPage";
+import ContractDetailPage from "./pages/ContractDetailPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
 import AdminClearances from "./pages/AdminClearances";
@@ -81,6 +83,8 @@ export default function App() {
           <Route path="/profile/:id" element={<ProfilePage />} />
           <Route path="/verification" element={<VerificationPage />} />
           <Route path="/post/:id" element={<PostDetailPage />} />
+          <Route path="/contracts" element={<ContractsPage />} />
+          <Route path="/contracts/:id" element={<ContractDetailPage />} />
         </Route>
         <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
           <Route path="/admin" element={<AdminDashboard />} />

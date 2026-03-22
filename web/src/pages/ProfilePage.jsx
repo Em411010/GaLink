@@ -28,6 +28,7 @@ import {
   User,
 } from "lucide-react";
 import { UserBadges, BadgeCard } from "../components/badge/BadgeSystem";
+import ContractModal from "../components/contract/ContractModal";
 import useGeoLocation from "../hooks/useGeoLocation";
 
 export default function ProfilePage() {
@@ -51,6 +52,7 @@ export default function ProfilePage() {
   const [editingLocation, setEditingLocation] = useState(false);
   const [locationDraft, setLocationDraft] = useState("");
   const [contracts, setContracts] = useState([]);
+  const [showContractModal, setShowContractModal] = useState(false);
   const { setManualLocation, refreshLocation, loading: locationLoading } = useGeoLocation();
 
   const isOwnProfile = !id || id === currentUser?._id;
@@ -130,6 +132,7 @@ export default function ProfilePage() {
   }
 
   return (
+    <>
     <div className="max-w-3xl mx-auto space-y-6">
       <div className="card bg-base-100 shadow-md">
         <div className="card-body">
@@ -264,13 +267,18 @@ export default function ProfilePage() {
                   <Star size={14} />
                   Rate
                 </button>
+                <button
+                  onClick={() => setShowContractModal(true)}
+                  className="btn btn-secondary btn-sm gap-1"
+                >
+                  <FileCheck size={14} />
+                  Hire
+                </button>
               </div>
             )}
           </div>
         </div>
       </div>
-
-      {/* Badge Card */}
       <BadgeCard level={profile.badgeLevel} showUpgrade={isOwnProfile} />
 
       {isOwnProfile && profile.badgeLevel < 3 && (
@@ -294,11 +302,8 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-
-      {/* Resume Section */}
       {(isOwnProfile || profile.resumeUrl) && (
         <div className="card bg-base-100 shadow-md relative overflow-hidden">
-          {/* Loading overlay */}
           {resumeUploading && (
             <div className="absolute inset-0 bg-base-100/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-3">
               <span className="loading loading-spinner loading-md text-primary" />
@@ -360,8 +365,6 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-
-      {/* Skills & Service Info */}
       {(profile.skills?.length > 0 || profile.serviceCategories?.length > 0 || isOwnProfile) && (
         <div className="card bg-base-100 shadow-md">
           <div className="card-body">
@@ -442,8 +445,6 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-
-      {/* Portfolio Section */}
       {(profile.portfolio?.length > 0 || isOwnProfile) && (
         <div className="card bg-base-100 shadow-md">
           <div className="card-body">
@@ -520,8 +521,6 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-
-      {/* Portfolio Lightbox */}
       {lightbox && (
         <div
           className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4"
@@ -603,8 +602,6 @@ export default function ProfilePage() {
           </div>
         </div>
       )}
-
-      {/* ── Contract / Transaction History ── */}
       {contracts.length > 0 && (
         <div className="card bg-base-100 shadow-md">
           <div className="card-body">
@@ -629,7 +626,6 @@ export default function ProfilePage() {
                     key={c._id}
                     className="border border-base-300 rounded-xl p-4 hover:bg-base-200/50 transition-colors"
                   >
-                    {/* Top row: title + status */}
                     <div className="flex items-start justify-between gap-2 mb-2">
                       <h4 className="font-semibold text-sm leading-tight line-clamp-1">
                         {c.title}
@@ -638,15 +634,11 @@ export default function ProfilePage() {
                         {c.status}
                       </span>
                     </div>
-
-                    {/* Description */}
                     {c.description && (
                       <p className="text-xs text-base-content/60 line-clamp-2 mb-3">
                         {c.description}
                       </p>
                     )}
-
-                    {/* Parties */}
                     <div className="flex items-center gap-2 mb-3">
                       <div className="flex items-center gap-1.5 flex-1 min-w-0">
                         <div className="avatar shrink-0">
@@ -700,8 +692,6 @@ export default function ProfilePage() {
                         </div>
                       </div>
                     </div>
-
-                    {/* Skills tags */}
                     {c.skills?.length > 0 && (
                       <div className="flex flex-wrap gap-1 mb-3">
                         {c.skills.map((s, i) => (
@@ -711,8 +701,6 @@ export default function ProfilePage() {
                         ))}
                       </div>
                     )}
-
-                    {/* Meta row */}
                     <div className="flex items-center flex-wrap gap-x-4 gap-y-1 text-xs text-base-content/50">
                       {c.amount > 0 && (
                         <span className="flex items-center gap-1 font-medium text-base-content/70">
@@ -740,8 +728,6 @@ export default function ProfilePage() {
                         </span>
                       )}
                     </div>
-
-                    {/* Rating comment */}
                     {c.rating?.comment && (
                       <p className="text-xs text-base-content/60 mt-2 italic border-l-2 border-primary/30 pl-2">
                         "{c.rating.comment}"
@@ -786,5 +772,17 @@ export default function ProfilePage() {
         </div>
       )}
     </div>
+
+    {showContractModal && profile && (
+      <ContractModal
+        freelancer={profile}
+        onClose={() => setShowContractModal(false)}
+        onCreated={() => {
+          // Refresh contracts
+          contractAPI.getUserContracts(profile._id).then(r => setContracts(r.data.contracts)).catch(() => {});
+        }}
+      />
+    )}
+    </>
   );
 }

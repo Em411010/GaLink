@@ -30,7 +30,6 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-base-100 flex flex-col">
-      {/* Back button */}
       <div className="p-6">
         <Link
           to="/"
@@ -40,16 +39,10 @@ export default function LoginPage() {
           Back to home
         </Link>
       </div>
-
-      {/* Background blobs */}
       <div className="absolute top-0 right-0 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl pointer-events-none" />
-
-      {/* Card */}
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-sm">
-
-          {/* Logo */}
           <div className="text-center mb-8">
             <Link to="/" className="inline-flex items-center gap-2 mb-6">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
@@ -62,8 +55,6 @@ export default function LoginPage() {
             <h1 className="text-2xl font-bold mb-1">Welcome back</h1>
             <p className="text-base-content/50 text-sm">Log in to your account</p>
           </div>
-
-          {/* Form */}
           <div className="bg-base-200/60 border border-base-300 rounded-2xl p-6 shadow-xl backdrop-blur-sm">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="form-control">

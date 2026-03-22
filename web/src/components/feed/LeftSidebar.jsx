@@ -57,7 +57,6 @@ export default function LeftSidebar() {
 
   return (
     <aside className="hidden md:block w-full space-y-4 sticky top-20 self-start max-h-[calc(100vh-5rem)] overflow-y-auto pb-4 pr-4 scrollbar-thin">
-      {/* ── Mini Profile Card ── */}
       <div className="card bg-base-100 shadow-sm border border-base-200">
         <div className="card-body p-4 gap-3">
           <div className="flex items-center gap-3">
@@ -79,7 +78,6 @@ export default function LeftSidebar() {
               <UserBadges user={user} size="xs" alwaysShow />
             </div>
           </div>
-          {/* Rating + Location */}
           <div className="flex flex-col gap-1 text-xs text-base-content/60">
             {user.averageRating > 0 && (
               <span className="flex items-center gap-1">
@@ -95,8 +93,6 @@ export default function LeftSidebar() {
           </div>
         </div>
       </div>
-
-      {/* ── Badge Progress ── */}
       {badgeLevel < 3 && (
         <div className="card bg-base-100 shadow-sm border border-base-200">
           <div className="card-body p-4 gap-2">
@@ -127,8 +123,6 @@ export default function LeftSidebar() {
           </div>
         </div>
       )}
-
-      {/* ── My Skills ── */}
       {user.skills?.length > 0 && (
         <div className="card bg-base-100 shadow-sm border border-base-200">
           <div className="card-body p-4 gap-2">
@@ -149,8 +143,6 @@ export default function LeftSidebar() {
           </div>
         </div>
       )}
-
-      {/* ── Availability Toggle ── */}
       {user.isFreelancer && (
         <div className="card bg-base-100 shadow-sm border border-base-200">
           <div className="card-body p-4 gap-2">
@@ -173,8 +165,6 @@ export default function LeftSidebar() {
           </div>
         </div>
       )}
-
-      {/* ── Seminars & Workshops ── */}
       <SeminarsWidget />
     </aside>
   );

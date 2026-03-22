@@ -17,7 +17,16 @@ const contractSchema = new mongoose.Schema(
     startDate: { type: Date },
     endDate: { type: Date },
     completedAt: { type: Date },
+    declinedAt: { type: Date },
+    cancelledAt: { type: Date },
+    disputeReason: { type: String, maxlength: 500 },
     rating: { type: mongoose.Schema.Types.ObjectId, ref: "Rating" },
+    modificationRequests: [{
+      requestedAt: { type: Date, default: Date.now },
+      fields: [{ type: String, trim: true }],
+      notes: { type: String, default: "", maxlength: 1000 },
+      status: { type: String, enum: ["pending", "resolved", "dismissed"], default: "pending" },
+    }],
   },
   { timestamps: true }
 );

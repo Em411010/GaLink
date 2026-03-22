@@ -25,7 +25,6 @@ function DocCard({ label, url, idType, verified, onApprove, onReject, approving,
   return (
     <>
       <div className={`flex flex-col gap-2 p-3 rounded-lg border bg-base-100 ${verified ? "border-success/50" : "border-base-300"}`}>
-        {/* Thumbnail — click to lightbox */}
         <div
           className="relative cursor-zoom-in rounded overflow-hidden bg-base-200 h-36 group"
           onClick={() => setLightbox(true)}
@@ -44,21 +43,16 @@ function DocCard({ label, url, idType, verified, onApprove, onReject, approving,
             </div>
           )}
         </div>
-
-        {/* Label */}
         <div className="flex items-center justify-between">
           <span className="text-xs font-semibold">{label}</span>
           {idType && <span className="text-xs text-base-content/50">{idType}</span>}
         </div>
-
-        {/* Already approved — no actions */}
         {verified ? (
           <div className="flex items-center justify-center gap-1 py-1 text-xs text-success font-medium">
             <Check size={12} /> Approved
           </div>
         ) : (
           <>
-            {/* Reject reason */}
             {rejectMode && (
               <textarea
                 className="textarea textarea-bordered textarea-xs w-full"
@@ -69,8 +63,6 @@ function DocCard({ label, url, idType, verified, onApprove, onReject, approving,
                 autoFocus
               />
             )}
-
-            {/* Action buttons */}
             {!rejectMode ? (
               <div className="flex gap-1.5">
                 <button
@@ -111,8 +103,6 @@ function DocCard({ label, url, idType, verified, onApprove, onReject, approving,
           </>
         )}
       </div>
-
-      {/* Lightbox */}
       {lightbox && (
         <div
           className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-sm cursor-zoom-out"
@@ -224,7 +214,6 @@ export default function AdminKYC() {
           {users.map((u) => (
             <div key={u._id} className="card border border-base-300 bg-base-100 shadow-sm">
               <div className="card-body p-4 space-y-3">
-                {/* User info */}
                 <div className="flex items-center gap-3">
                   <div className="avatar">
                     <div className="w-10 h-10 rounded-full bg-base-300 flex-shrink-0">
@@ -239,8 +228,6 @@ export default function AdminKYC() {
                     {BADGE_LABELS[u.badgeLevel]}
                   </span>
                 </div>
-
-                {/* Documents side by side */}
                 <div className="grid grid-cols-2 gap-2">
                   <DocCard
                     label="Government ID"

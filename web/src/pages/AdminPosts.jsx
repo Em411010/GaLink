@@ -79,8 +79,6 @@ export default function AdminPosts() {
         <h1 className="text-2xl font-extrabold tracking-tight">Content Moderation — Posts</h1>
         <p className="text-base-content/50 text-sm">Review and remove inappropriate posts</p>
       </div>
-
-      {/* Search */}
       <div className="flex items-center gap-2 max-w-lg">
         <Search size={16} className="text-base-content/40 flex-shrink-0" />
         <input
@@ -94,8 +92,6 @@ export default function AdminPosts() {
         <button className="btn btn-sm btn-primary" onClick={() => { setSearch(searchInput); setPage(1); }}>Search</button>
         <span className="text-xs text-base-content/50 whitespace-nowrap">{totalCount} posts</span>
       </div>
-
-      {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-base-300">
         <table className="table table-sm w-full">
           <thead className="bg-base-200">
@@ -147,8 +143,6 @@ export default function AdminPosts() {
           </tbody>
         </table>
       </div>
-
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button className="btn btn-sm btn-ghost" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
@@ -160,8 +154,6 @@ export default function AdminPosts() {
           </button>
         </div>
       )}
-
-      {/* ── Post Detail Modal ────────────────────────────────────────────── */}
       {(detailPost || detailLoading) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => { setDetailPost(null); setDetailLoading(false); }}>
           <div className="card bg-base-100 shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -169,7 +161,6 @@ export default function AdminPosts() {
               <div className="flex justify-center py-16"><span className="loading loading-spinner loading-lg" /></div>
             ) : detailPost && (
               <>
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-base-300">
                   <div className="flex items-center gap-3 min-w-0">
                     <Link to={`/profile/${detailPost.author?._id}`} className="flex items-center gap-2 hover:underline min-w-0">
@@ -188,13 +179,8 @@ export default function AdminPosts() {
                     <X size={16} />
                   </button>
                 </div>
-
-                {/* Body — scrollable */}
                 <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
-                  {/* Content */}
                   <p className="text-sm whitespace-pre-wrap">{detailPost.content}</p>
-
-                  {/* Image */}
                   {detailPost.imageUrl && (
                     <img
                       src={detailPost.imageUrl}
@@ -202,14 +188,10 @@ export default function AdminPosts() {
                       className="rounded-lg max-h-64 w-full object-cover border border-base-300"
                     />
                   )}
-
-                  {/* Stats */}
                   <div className="flex items-center gap-4 text-xs text-base-content/50">
                     <span className="flex items-center gap-1"><Heart size={12} /> {detailPost.likes?.length || 0} likes</span>
                     <span className="flex items-center gap-1"><MessageSquare size={12} /> {detailPost.comments?.length || 0} comments</span>
                   </div>
-
-                  {/* Comments */}
                   {detailPost.comments?.length > 0 && (
                     <div className="space-y-2">
                       <h4 className="text-xs font-semibold text-base-content/60 uppercase tracking-wide">Comments</h4>
@@ -230,8 +212,6 @@ export default function AdminPosts() {
                               </span>
                             </div>
                             <p className="text-xs mt-0.5 whitespace-pre-wrap">{c.content}</p>
-
-                            {/* Replies */}
                             {c.replies?.length > 0 && (
                               <div className="mt-2 ml-2 pl-2 border-l-2 border-base-300 space-y-1.5">
                                 {c.replies.map((r) => (
@@ -267,8 +247,6 @@ export default function AdminPosts() {
                     </div>
                   )}
                 </div>
-
-                {/* Footer */}
                 <div className="px-5 py-3 border-t border-base-300 flex items-center justify-between">
                   <Link
                     to={`/profile/${detailPost.author?._id}`}
@@ -288,8 +266,6 @@ export default function AdminPosts() {
           </div>
         </div>
       )}
-
-      {/* Delete Confirm Modal */}
       {deleteModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setDeleteModal(null)}>
           <div className="card bg-base-100 shadow-2xl w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>

@@ -65,8 +65,6 @@ export default function AdminReels() {
         <h1 className="text-2xl font-extrabold tracking-tight">Content Moderation — Reels</h1>
         <p className="text-base-content/50 text-sm">Review and remove inappropriate reels</p>
       </div>
-
-      {/* Search */}
       <div className="flex items-center gap-2 max-w-lg">
         <Search size={16} className="text-base-content/40 flex-shrink-0" />
         <input
@@ -80,8 +78,6 @@ export default function AdminReels() {
         <button className="btn btn-sm btn-primary" onClick={() => { setSearch(searchInput); setPage(1); }}>Search</button>
         <span className="text-xs text-base-content/50 whitespace-nowrap">{totalCount} reels</span>
       </div>
-
-      {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-base-300">
         <table className="table table-sm w-full">
           <thead className="bg-base-200">
@@ -142,8 +138,6 @@ export default function AdminReels() {
           </tbody>
         </table>
       </div>
-
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button className="btn btn-sm btn-ghost" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
@@ -155,8 +149,6 @@ export default function AdminReels() {
           </button>
         </div>
       )}
-
-      {/* ── Reel Detail Modal ────────────────────────────────────────────── */}
       {(detailReel || detailLoading) && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => { setDetailReel(null); setDetailLoading(false); }}>
           <div className="card bg-base-100 shadow-2xl w-full max-w-lg mx-4 max-h-[85vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
@@ -164,7 +156,6 @@ export default function AdminReels() {
               <div className="flex justify-center py-16"><span className="loading loading-spinner loading-lg" /></div>
             ) : detailReel && (
               <>
-                {/* Header */}
                 <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-base-300">
                   <div className="flex items-center gap-3 min-w-0">
                     <Link to={`/profile/${detailReel.author?._id}`} className="flex items-center gap-2 hover:underline min-w-0">
@@ -183,10 +174,7 @@ export default function AdminReels() {
                     <X size={16} />
                   </button>
                 </div>
-
-                {/* Body — scrollable */}
                 <div className="overflow-y-auto flex-1 px-5 py-4 space-y-4">
-                  {/* Video */}
                   {detailReel.videoUrl && (
                     <video
                       src={detailReel.videoUrl}
@@ -195,13 +183,9 @@ export default function AdminReels() {
                       poster={detailReel.thumbnailUrl || undefined}
                     />
                   )}
-
-                  {/* Description */}
                   {detailReel.description && (
                     <p className="text-sm whitespace-pre-wrap">{detailReel.description}</p>
                   )}
-
-                  {/* Skills */}
                   {detailReel.detectedSkills?.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {detailReel.detectedSkills.map((s) => (
@@ -209,8 +193,6 @@ export default function AdminReels() {
                       ))}
                     </div>
                   )}
-
-                  {/* Stats */}
                   <div className="flex items-center gap-4 text-xs text-base-content/50">
                     <span className="flex items-center gap-1"><Eye size={12} /> {detailReel.views || 0} views</span>
                     <span className="flex items-center gap-1"><Heart size={12} /> {detailReel.likes?.length || 0} likes</span>
@@ -218,8 +200,6 @@ export default function AdminReels() {
                       <span className="flex items-center gap-1"><Clock size={12} /> {Math.round(detailReel.duration)}s</span>
                     )}
                   </div>
-
-                  {/* Tags */}
                   {detailReel.tags?.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {detailReel.tags.map((t) => (
@@ -228,8 +208,6 @@ export default function AdminReels() {
                     </div>
                   )}
                 </div>
-
-                {/* Footer */}
                 <div className="px-5 py-3 border-t border-base-300 flex items-center justify-between">
                   <Link
                     to={`/profile/${detailReel.author?._id}`}
@@ -249,8 +227,6 @@ export default function AdminReels() {
           </div>
         </div>
       )}
-
-      {/* Delete Confirm Modal */}
       {deleteModal && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setDeleteModal(null)}>
           <div className="card bg-base-100 shadow-2xl w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>

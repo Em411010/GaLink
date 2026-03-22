@@ -33,7 +33,8 @@ Always respond in valid JSON with exactly these fields:
   "urgencyLevel": "LOW" | "MEDIUM" | "HIGH",
   "locationRelevant": true | false,
   "estimatedBudget": 0,
-  "summary": "one-line summary"
+  "summary": "one-line summary",
+  "contractDescription": "1-2 sentence description written from the hirer's point of view, in plain English, describing exactly what work is needed. Direct and easy to understand. Example: 'I need a plumber to fix a leaking kitchen sink as soon as possible. The sink has been leaking nonstop since yesterday and I need it repaired urgently.' Leave empty string if isGeneric is true or needsService is false."
 }
 
 LANGUAGE MATCHING RULE (applies to ALL string fields — empathyLine, clarificationQuestion, summary):

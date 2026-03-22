@@ -1,18 +1,43 @@
 ﻿import Rating from "../models/Rating.model.js";
 import User from "../models/User.model.js";
+import Contract from "../models/Contract.model.js";
+
 export async function submitRating(req, res, next) {
   try {
-    const { workQuality, communication, reliability, comment } = req.body;
+    const { workQuality, communication, reliability, comment, contractId } = req.body;
     const { freelancerId } = req.params;
     if (freelancerId === req.user._id.toString()) return res.status(400).json({ message: "Cannot rate yourself" });
-    const existing = await Rating.findOne({ reviewer: req.user._id, freelancer: freelancerId });
+
+    // If contractId is provided, validate it
+    if (contractId) {
+      const contract = await Contract.findById(contractId);
+      if (!contract) return res.status(404).json({ message: "Contract not found" });
+      if (contract.hirer.toString() !== req.user._id.toString()) {
+        return res.status(403).json({ message: "Only the hirer can rate for this contract" });
+      }
+      if (contract.status !== "completed") {
+        return res.status(400).json({ message: "Can only rate completed contracts" });
+      }
+      if (contract.freelancer.toString() !== freelancerId) {
+        return res.status(400).json({ message: "Freelancer does not match contract" });
+      }
+    }
+
+    const query = { reviewer: req.user._id, freelancer: freelancerId, contract: contractId || null };
+    const existing = await Rating.findOne(query);
     let rating;
     if (existing) {
       Object.assign(existing, { workQuality, communication, reliability, comment });
       rating = await existing.save();
     } else {
-      rating = await Rating.create({ reviewer: req.user._id, freelancer: freelancerId, workQuality, communication, reliability, comment });
+      rating = await Rating.create({ ...query, workQuality, communication, reliability, comment });
     }
+
+    // Link rating to contract
+    if (contractId) {
+      await Contract.findByIdAndUpdate(contractId, { rating: rating._id });
+    }
+
     const ratings = await Rating.find({ freelancer: freelancerId });
     const avg = ratings.reduce((sum, r) => sum + r.averageScore, 0) / ratings.length;
     await User.findByIdAndUpdate(freelancerId, { averageRating: Math.round(avg * 10) / 10, totalRatings: ratings.length });

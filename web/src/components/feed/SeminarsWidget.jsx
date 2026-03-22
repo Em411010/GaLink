@@ -40,7 +40,6 @@ export default function SeminarsWidget() {
   return (
     <div className="card bg-base-100 shadow-sm border border-base-200">
       <div className="card-body p-4 gap-3">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-semibold uppercase tracking-wider text-base-content/50 flex items-center gap-1.5">
             <GraduationCap size={13} className="text-primary" />
@@ -55,16 +54,12 @@ export default function SeminarsWidget() {
             <RefreshCw size={12} className={refreshing ? "animate-spin" : ""} />
           </button>
         </div>
-
-        {/* AI badge */}
         <div className="flex items-center gap-1.5 text-[10px] text-base-content/40">
           <Sparkles size={10} className="text-primary/60" />
           {hasSkills
             ? `AI-matched to your skills`
             : "Tech · Trades · Metro Manila picks"}
         </div>
-
-        {/* Loading skeleton */}
         {loading && (
           <div className="space-y-3">
             {[1, 2, 3].map((i) => (
@@ -76,8 +71,6 @@ export default function SeminarsWidget() {
             ))}
           </div>
         )}
-
-        {/* Seminar list */}
         {!loading && seminars.length === 0 && (
           <p className="text-xs text-base-content/40 text-center py-3">
             Could not load recommendations. Try refreshing.
@@ -95,7 +88,6 @@ export default function SeminarsWidget() {
                   className="border border-base-200 rounded-xl p-3 hover:border-primary/30 hover:bg-base-50 transition-all cursor-pointer"
                   onClick={() => setExpanded(isOpen ? null : i)}
                 >
-                  {/* Title row */}
                   <div className="flex items-start gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="text-xs font-semibold leading-snug line-clamp-2">{s.title}</p>
@@ -103,8 +95,6 @@ export default function SeminarsWidget() {
                     </div>
                     <span className={`badge badge-xs shrink-0 ${badgeClass}`}>{s.category}</span>
                   </div>
-
-                  {/* Meta row */}
                   <div className="flex flex-wrap gap-x-3 gap-y-0.5 mt-2">
                     {s.date && (
                       <span className="flex items-center gap-1 text-[10px] text-base-content/50">
@@ -121,8 +111,6 @@ export default function SeminarsWidget() {
                       </span>
                     )}
                   </div>
-
-                  {/* Expanded description + skills + link */}
                   {isOpen && (
                     <div className="mt-3 space-y-2.5 border-t border-base-200 pt-2.5">
                       <p className="text-[11px] text-base-content/70 leading-relaxed">{s.description}</p>
@@ -153,8 +141,6 @@ export default function SeminarsWidget() {
             })}
           </div>
         )}
-
-        {/* Footer note */}
         <p className="text-[9px] text-base-content/30 text-center">
           AI-matched · Links go to official workshop &amp; seminar platforms
         </p>

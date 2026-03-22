@@ -87,8 +87,14 @@ export const notificationAPI = {
 // Contracts
 export const contractAPI = {
   getUserContracts: (userId) => api.get(`/contracts/user/${userId}`),
+  getMyContracts: (params) => api.get("/contracts/me", { params }),
+  getById: (id) => api.get(`/contracts/${id}`),
   createContract: (data) => api.post("/contracts", data),
-  updateStatus: (id, status) => api.put(`/contracts/${id}/status`, { status }),
+  acceptContract: (id) => api.put(`/contracts/${id}/accept`),
+  declineContract: (id) => api.put(`/contracts/${id}/decline`),
+  updateStatus: (id, status, extra = {}) => api.put(`/contracts/${id}/status`, { status, ...extra }),
+  requestModification: (id, data) => api.post(`/contracts/${id}/modification-request`, data),
+  resolveModificationRequest: (id, reqId, action) => api.put(`/contracts/${id}/modification-request/${reqId}`, { action }),
 };
 
 // Verification / Badge
