@@ -1,33 +1,29 @@
-﻿import nodemailer from "nodemailer";
-const smtpPort = parseInt(process.env.SMTP_PORT || "465");
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST || "smtp-relay.brevo.com",
-  port: smtpPort,
-  secure: smtpPort === 465,
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
-  connectionTimeout: 10000,
-  greetingTimeout: 10000,
-  socketTimeout: 15000,
-});
+﻿import axios from "axios";
 
-if (process.env.SMTP_USER) {
-  transporter.verify((error) => {
-    if (error) console.error("[SMTP] Connection failed:", error.message);
-    else console.log("[SMTP] Connection verified — ready to send emails");
-  });
-}
-export async function sendOtpEmail(email, otp) {
-  if (!process.env.SMTP_USER) {
-    console.warn("SMTP_USER not set — skipping OTP email");
+const BREVO_API = "https://api.brevo.com/v3/smtp/email";
+const FROM_EMAIL = process.env.SMTP_FROM || "emmanueljr11010@gmail.com";
+
+async function brevoSend(payload) {
+  if (!process.env.BREVO_API_KEY) {
+    console.warn("[Email] BREVO_API_KEY not set — skipping email");
     return;
   }
-  console.log(`[OTP] Sending ${otp} → ${email}  via ${process.env.SMTP_HOST}:${process.env.SMTP_PORT} (login: ${process.env.SMTP_USER}, from: ${process.env.SMTP_FROM || process.env.SMTP_USER})`);
+  const res = await axios.post(BREVO_API, payload, {
+    headers: { "api-key": process.env.BREVO_API_KEY, "Content-Type": "application/json" },
+    timeout: 15000,
+  });
+  console.log("[Email] Brevo accepted — messageId:", res.data.messageId);
+  return res.data;
+}
+
+export async function sendOtpEmail(email, otp) {
+  console.log(`[OTP] Sending ${otp} → ${email}`);
   try {
-    const info = await transporter.sendMail({
-      from: `"GaLink" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-      to: email,
+    await brevoSend({
+      sender: { name: "GaLink", email: FROM_EMAIL },
+      to: [{ email }],
       subject: "GaLink — Your Email Verification Code",
-      html: `
+      htmlContent: `
         <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;padding:32px;background:#f9f9f9;border-radius:12px;">
           <h2 style="color:#7c3aed;margin-bottom:8px;">Email Verification</h2>
           <p style="color:#555;margin-bottom:24px;">Use the code below to verify your email address on GaLink. It expires in <strong>10 minutes</strong>.</p>
@@ -38,23 +34,22 @@ export async function sendOtpEmail(email, otp) {
         </div>
       `,
     });
-    console.log(`[OTP] SMTP accepted — messageId: ${info.messageId}, response: ${info.response}`);
   } catch (error) {
-    console.error("[OTP] SMTP send failed:", error.message);
+    console.error("[OTP] Brevo send failed:", error.response?.data || error.message);
     throw error;
   }
 }
 
 export async function sendWelcomeEmail(email, name) {
-  if (!process.env.SMTP_USER) return;
   try {
-    await transporter.sendMail({
-      from: `"GaLink" <${process.env.SMTP_FROM || process.env.SMTP_USER}>`,
-      to: email,
+    await brevoSend({
+      sender: { name: "GaLink", email: FROM_EMAIL },
+      to: [{ email }],
       subject: "Welcome to GaLink!",
-      html: `<h1>Welcome, ${name}!</h1><p>Thanks for joining GaLink — your go-to platform for finding skilled Filipino workers.</p>`,
+      htmlContent: `<h1>Welcome, ${name}!</h1><p>Thanks for joining GaLink — your go-to platform for finding skilled Filipino workers.</p>`,
     });
   } catch (error) {
-    console.error("Email error:", error.message);
+    console.error("[Email] Welcome email failed:", error.response?.data || error.message);
   }
 }
+
