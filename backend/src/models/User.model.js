@@ -11,7 +11,7 @@ const userSchema = new mongoose.Schema({
   bio: { type: String, default: "", maxlength: 500 },
   location: { type: String, default: "" },
   coords: {
-    type: { type: String, enum: ["Point"], default: "Point" },
+    type: { type: String, enum: ["Point"] },
     coordinates: { type: [Number] }, // [longitude, latitude]
   },
   skills: [{ type: String, trim: true }],
