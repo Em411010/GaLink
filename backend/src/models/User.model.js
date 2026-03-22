@@ -10,16 +10,28 @@ const userSchema = new mongoose.Schema({
   profilePhoto: { type: String, default: "" },
   bio: { type: String, default: "", maxlength: 500 },
   location: { type: String, default: "" },
+  coords: {
+    type: { type: String, enum: ["Point"], default: "Point" },
+    coordinates: { type: [Number] }, // [longitude, latitude]
+  },
   skills: [{ type: String, trim: true }],
+  serviceCategories: [{ type: String, trim: true }],
   experience: { type: String, default: "" },
+  yearsOfExperience: { type: Number, default: 0 },
   hourlyRate: { type: Number, default: 0 },
+  rateType: { type: String, enum: ["hourly", "per_project", "negotiable", ""], default: "" },
+  serviceAreas: [{ type: String, trim: true }],
+  availableDays: [{ type: String, enum: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] }],
+  availableFrom: { type: Date },
+  completedJobs: { type: Number, default: 0 },
   isAdmin: { type: Boolean, default: false },
   isHirer: { type: Boolean, default: false },
   isFreelancer: { type: Boolean, default: false },
   isOpenForWork: { type: Boolean, default: false },
   resumeUrl: { type: String, default: "" },
   resumeText: { type: String, default: "" },
-  portfolio: [{ title: String, description: String, imageUrl: String, link: String }],
+  resumeUploadedAt: { type: Date, default: null },
+  portfolio: [{ title: String, description: String, imageUrl: String, link: String, tags: [String] }],
 
   // ── Verification / Badge System ──────────────────────────────────────────
   badgeLevel: { type: Number, default: 0, min: 0, max: 3 },
@@ -61,5 +73,6 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 userSchema.index({ skills: 1 });
 userSchema.index({ location: 1 });
 userSchema.index({ isFreelancer: 1 });
+userSchema.index({ coords: "2dsphere" }, { sparse: true });
 const User = mongoose.model("User", userSchema);
 export default User;

@@ -131,8 +131,6 @@ export default function AdminClearances() {
           ))}
         </div>
       )}
-
-      {/* Reject Modal */}
       {rejectModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setRejectModal(null)}>
           <div className="card bg-base-100 shadow-2xl w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>

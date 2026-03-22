@@ -1,9 +1,13 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { messageAPI, userAPI } from "../services/api";
+import { useSearchParams, useNavigate, Link } from "react-router-dom";
+import { messageAPI, userAPI, contractAPI } from "../services/api";
 import useAuthStore from "../store/useAuthStore";
 import toast from "react-hot-toast";
-import { Send, Paperclip, X, Reply, Trash2, ExternalLink, ArrowLeft } from "lucide-react";
+import {
+  Send, Paperclip, X, Reply, Trash2, ExternalLink, ArrowLeft, MapPin,
+  FileText, CheckCircle, XCircle, DollarSign, Calendar, Tag, Edit3,
+} from "lucide-react";
+import ContractModal from "../components/contract/ContractModal";
 import { io } from "socket.io-client";
 import { AccessGate } from "../components/badge/BadgeSystem";
 import { UserBadges } from "../components/badge/BadgeSystem";
@@ -52,6 +56,10 @@ export default function MessagesPage() {
   const [attachFile, setAttachFile] = useState(null);  // File | null
   const [attachPreview, setAttachPreview] = useState(null); // object URL
   const [confirmDeleteId, setConfirmDeleteId] = useState(null); // msgId awaiting confirm
+  const [modifyContractId, setModifyContractId] = useState(null); // contract msg _id showing modify input
+  const [modifyText, setModifyText] = useState("");
+  const [showContractModal, setShowContractModal] = useState(false);
+  const [editContract, setEditContract] = useState(null); // contract object to pre-fill in edit mode
 
   const messagesEndRef = useRef(null);
   const socketRef = useRef(null);
@@ -276,7 +284,6 @@ export default function MessagesPage() {
   return (
     <AccessGate requiredLevel={1} currentLevel={user?.badgeLevel || 0} feature="Messaging">
     <div className="h-[calc(100vh-120px)] flex gap-0 md:gap-4">
-      {/* ── Delete confirmation modal ──────────────────────────────────── */}
       {confirmDeleteMsg && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
@@ -310,7 +317,6 @@ export default function MessagesPage() {
           </div>
         </div>
       )}
-      {/* ── Conversation List ─────────────────────────────────────────────── */}
       <div className={`${activeConversation || pendingUser ? "hidden md:flex" : "flex"} w-full md:w-80 bg-base-100 rounded-lg shadow-md overflow-hidden flex-col`}>
         <div className="p-4 border-b border-base-300">
           <h2 className="font-bold text-lg">Messages</h2>
@@ -334,7 +340,6 @@ export default function MessagesPage() {
                   onClick={() => openConversation(conv)}
                   className={`w-full flex items-center gap-3 p-3 hover:bg-base-200 transition-colors ${isActive ? "bg-base-200" : ""}`}
                 >
-                  {/* Avatar + online dot */}
                   <div className="relative shrink-0">
                     <div className="avatar">
                       <div className="w-10 rounded-full">
@@ -374,8 +379,6 @@ export default function MessagesPage() {
           )}
         </div>
       </div>
-
-      {/* ── Chat Panel ───────────────────────────────────────────────────── */}
       <div className={`${activeConversation || pendingUser ? "flex" : "hidden md:flex"} flex-1 bg-base-100 rounded-lg shadow-md flex-col overflow-hidden`}>
         {!activeConversation && !pendingUser ? (
           <div className="flex-1 flex items-center justify-center text-base-content/40">
@@ -383,7 +386,6 @@ export default function MessagesPage() {
           </div>
         ) : (
           <>
-            {/* ── Header ─────────────────────────────────────── */}
             <div className="p-4 border-b border-base-300 flex items-center gap-3">
               <button
                 className="btn btn-ghost btn-sm btn-circle md:hidden"
@@ -416,6 +418,12 @@ export default function MessagesPage() {
                   <p className="text-xs text-base-content/50">
                     {isOnline(activeOther._id) ? "Online" : "Offline"}
                   </p>
+                  {activeOther.location && (
+                    <p className="text-xs text-base-content/40 flex items-center gap-1 mt-0.5">
+                      <MapPin size={10} />
+                      {activeOther.location}
+                    </p>
+                  )}
                 </div>
               </button>
               <a
@@ -427,8 +435,6 @@ export default function MessagesPage() {
                 <ExternalLink size={13} /> View Profile
               </a>
             </div>
-
-            {/* ── Messages ───────────────────────────────────── */}
             <div className="flex-1 overflow-y-auto p-4 space-y-1">
               {groups.map((item) => {
                 if (item.type === "separator") {
@@ -445,9 +451,206 @@ export default function MessagesPage() {
                 const isMine = msg.sender?._id === user?._id || msg.sender === user?._id;
                 const isLastSeenMsg = msg._id === seenMsgId;
 
+                // ── Contract message bubble ──────────────
+                if (msg.messageType === "contract" && msg.contract && !msg.deleted) {
+                  const c = msg.contract;
+                  const isFreelancer = c.freelancer?._id === user?._id;
+                  const isPending = c.status === "pending";
+                  const statusColor = {
+                    pending: "badge-warning",
+                    active: "badge-info",
+                    completed: "badge-success",
+                    cancelled: "badge-ghost",
+                    disputed: "badge-error",
+                  }[c.status] || "badge-ghost";
+
+                  const handleAccept = async () => {
+                    try {
+                      await contractAPI.acceptContract(c._id);
+                      toast.success("Contract accepted!");
+                      setMessages((prev) =>
+                        prev.map((m) =>
+                          m._id === msg._id
+                            ? { ...m, contract: { ...m.contract, status: "active" } }
+                            : m
+                        )
+                      );
+                    } catch (err) {
+                      toast.error(err.response?.data?.message || "Failed to accept");
+                    }
+                  };
+
+                  const handleDecline = async () => {
+                    try {
+                      await contractAPI.declineContract(c._id);
+                      toast.success("Contract declined");
+                      setMessages((prev) =>
+                        prev.map((m) =>
+                          m._id === msg._id
+                            ? { ...m, contract: { ...m.contract, status: "cancelled" } }
+                            : m
+                        )
+                      );
+                    } catch (err) {
+                      toast.error(err.response?.data?.message || "Failed to decline");
+                    }
+                  };
+
+                  return (
+                    <div key={msg._id} className={`group flex ${isMine ? "justify-end" : "justify-start"} mb-1`}>
+                      <div className="max-w-sm w-full">
+                        <div className={`rounded-xl border shadow-sm overflow-hidden ${
+                          c.status === "pending" ? "border-warning/40 bg-warning/5" :
+                          c.status === "active" ? "border-info/40 bg-info/5" :
+                          c.status === "completed" ? "border-success/40 bg-success/5" :
+                          "border-base-300 bg-base-200/60"
+                        }`}>
+                          <div className={`h-1 w-full ${
+                            c.status === "pending" ? "bg-warning" :
+                            c.status === "active" ? "bg-info" :
+                            c.status === "completed" ? "bg-success" :
+                            "bg-base-300"
+                          }`} />
+                          <div className="p-3 space-y-2">
+                            <div className="flex items-center justify-between gap-2">
+                              <div className="flex items-center gap-2">
+                                <FileText size={15} className="text-primary shrink-0" />
+                                <span className="font-bold text-sm line-clamp-1">{c.title}</span>
+                              </div>
+                              <span className={`badge ${statusColor} badge-xs shrink-0`}>
+                                {c.status}
+                              </span>
+                            </div>
+                            {c.description && (
+                              <p className="text-xs text-base-content/60 line-clamp-2">{c.description}</p>
+                            )}
+                            {c.skills?.length > 0 && (
+                              <div className="flex flex-wrap gap-1">
+                                {c.skills.slice(0, 4).map((s, i) => (
+                                  <span key={i} className="badge badge-outline badge-xs py-1.5">
+                                    <Tag size={8} className="mr-0.5" />{s}
+                                  </span>
+                                ))}
+                                {c.skills.length > 4 && (
+                                  <span className="badge badge-ghost badge-xs">+{c.skills.length - 4}</span>
+                                )}
+                              </div>
+                            )}
+                            <div className="flex items-center flex-wrap gap-x-3 gap-y-1 text-xs text-base-content/50">
+                              {c.amount > 0 && (
+                                <span className="flex items-center gap-1 font-semibold text-base-content">
+                                  <DollarSign size={11} />
+                                  ₱{c.amount.toLocaleString()}{c.rateType === "hourly" ? "/hr" : ""}
+                                </span>
+                              )}
+                              {c.startDate && (
+                                <span className="flex items-center gap-1">
+                                  <Calendar size={10} />
+                                  {new Date(c.startDate).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}
+                                  {c.endDate && ` – ${new Date(c.endDate).toLocaleDateString("en-PH", { month: "short", day: "numeric" })}`}
+                                </span>
+                              )}
+                            </div>
+                            {isFreelancer && isPending && (
+                              <div className="space-y-2 mt-1">
+                                <div className="flex gap-2">
+                                  <button
+                                    onClick={handleAccept}
+                                    className="btn btn-success btn-xs flex-1 gap-1"
+                                  >
+                                    <CheckCircle size={12} /> Accept
+                                  </button>
+                                  <button
+                                    onClick={() => {
+                                      setModifyContractId(modifyContractId === msg._id ? null : msg._id);
+                                      setModifyText("");
+                                    }}
+                                    className="btn btn-warning btn-outline btn-xs flex-1 gap-1"
+                                  >
+                                    <Edit3 size={12} /> Modify
+                                  </button>
+                                  <button
+                                    onClick={handleDecline}
+                                    className="btn btn-error btn-outline btn-xs flex-1 gap-1"
+                                  >
+                                    <XCircle size={12} /> Decline
+                                  </button>
+                                </div>
+                                {modifyContractId === msg._id && (
+                                  <div className="space-y-1.5">
+                                    <textarea
+                                      className="textarea textarea-bordered textarea-xs w-full leading-snug"
+                                      rows={2}
+                                      placeholder="Describe what you'd like changed (e.g. budget, timeline, scope)…"
+                                      value={modifyText}
+                                      onChange={(e) => setModifyText(e.target.value)}
+                                      maxLength={500}
+                                    />
+                                    <button
+                                      className="btn btn-warning btn-xs w-full gap-1"
+                                      disabled={!modifyText.trim()}
+                                      onClick={async () => {
+                                        const convId = activeConversation?._id;
+                                        if (!convId || !modifyText.trim()) return;
+                                        try {
+                                          await messageAPI.sendMessage(convId, {
+                                            text: `✏️ Modification request for "${c.title}":\n${modifyText.trim()}`,
+                                          });
+                                          toast.success("Modification request sent");
+                                          setModifyContractId(null);
+                                          setModifyText("");
+                                        } catch {
+                                          toast.error("Failed to send request");
+                                        }
+                                      }}
+                                    >
+                                      <Send size={10} /> Send Request
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            )}
+                            {isMine && isPending && (
+                              <button
+                                onClick={() => { setEditContract(c); setShowContractModal(true); }}
+                                className="btn btn-warning btn-xs w-full gap-1"
+                              >
+                                <Edit3 size={12} /> Edit & Resend
+                              </button>
+                            )}
+                            {c.status === "active" && (
+                              <p className="text-xs text-success font-medium flex items-center gap-1">
+                                <CheckCircle size={12} /> Contract accepted
+                              </p>
+                            )}
+                            {c.status === "cancelled" && (
+                              <p className="text-xs text-error font-medium flex items-center gap-1">
+                                <XCircle size={12} /> Contract declined
+                              </p>
+                            )}
+                            <Link
+                              to={`/contracts/${c._id}`}
+                              className="text-xs text-primary hover:underline mt-0.5"
+                            >
+                              View full details →
+                            </Link>
+                          </div>
+                        </div>
+
+                        <div className="text-xs opacity-50 flex flex-wrap items-center gap-1 mt-1 px-1 justify-end">
+                          <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                          <span>·</span>
+                          <span>{new Date(msg.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}</span>
+                          {isMine && isLastSeenMsg && <span className="text-primary font-medium">• Seen</span>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+
+                // ── Regular message bubble ───────────────
                 return (
                   <div key={msg._id} className={`group chat ${isMine ? "chat-end" : "chat-start"}`}>
-                    {/* Reply-to quote */}
                     {msg.replyTo && !msg.deleted && (
                       <div className={`text-xs px-3 py-1.5 rounded-t-lg mb-0.5 max-w-xs border-l-4 border-primary/60 bg-base-200/70 ${isMine ? "ml-auto" : ""}`}>
                         <span className="font-semibold text-base-content/60">{msg.replyTo.sender?.name}</span>
@@ -471,8 +674,6 @@ export default function MessagesPage() {
                           {msg.text && <span>{msg.text}</span>}
                         </>
                       )}
-
-                      {/* Hover actions */}
                       {!msg.deleted && (
                         <div className={`absolute top-0 ${isMine ? "right-full pr-1" : "left-full pl-1"} hidden group-hover:flex items-center gap-0.5`}>
                           <button
@@ -495,8 +696,17 @@ export default function MessagesPage() {
                       )}
                     </div>
 
-                    <div className="chat-footer text-xs opacity-50 flex items-center gap-1">
-                      {new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    <div className="chat-footer text-xs opacity-50 flex flex-wrap items-center gap-1">
+                      <span>{new Date(msg.createdAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                      <span>·</span>
+                      <span>{new Date(msg.createdAt).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}</span>
+                      {(isMine ? user?.location : activeOther?.location) && (
+                        <>
+                          <span>·</span>
+                          <MapPin size={9} />
+                          <span>{isMine ? user.location : activeOther.location}</span>
+                        </>
+                      )}
                       {isMine && isLastSeenMsg && <span className="text-primary font-medium">• Seen</span>}
                     </div>
                   </div>
@@ -504,8 +714,6 @@ export default function MessagesPage() {
               })}
               <div ref={messagesEndRef} />
             </div>
-
-            {/* ── Reply preview bar ───────────────────────────── */}
             {replyTo && (
               <div className="px-4 py-2 border-t border-base-300 bg-base-200/60 flex items-center gap-2 text-sm">
                 <Reply size={14} className="text-primary shrink-0" />
@@ -518,8 +726,6 @@ export default function MessagesPage() {
                 </button>
               </div>
             )}
-
-            {/* ── Attachment preview bar ──────────────────────── */}
             {attachPreview && (
               <div className="px-4 py-2 border-t border-base-300 bg-base-200/60 flex items-center gap-2">
                 <img src={attachPreview} alt="preview" className="h-14 rounded-lg object-cover" />
@@ -529,8 +735,6 @@ export default function MessagesPage() {
                 </button>
               </div>
             )}
-
-            {/* ── Input ──────────────────────────────────────── */}
             <form onSubmit={handleSend} className="p-4 border-t border-base-300 flex gap-2 items-center">
               <input
                 type="file"
@@ -547,6 +751,14 @@ export default function MessagesPage() {
               >
                 <Paperclip size={18} />
               </button>
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                onClick={() => { setEditContract(null); setShowContractModal(true); }}
+                title="Create contract"
+              >
+                <FileText size={18} className="text-secondary" />
+              </button>
               <input
                 type="text"
                 placeholder={replyTo ? "Reply…" : pendingUser ? `Message ${pendingUser.name}…` : "Type a message..."}
@@ -562,6 +774,24 @@ export default function MessagesPage() {
                 <Send size={18} />
               </button>
             </form>
+            {showContractModal && activeOther?._id && (
+              <ContractModal
+                freelancer={editContract ? (editContract.hirer?._id === user?._id ? editContract.freelancer : editContract.hirer) : activeOther}
+                contractToEdit={editContract || undefined}
+                skipNavigate
+                onClose={() => { setShowContractModal(false); setEditContract(null); }}
+                onCreated={() => {
+                  setShowContractModal(false);
+                  setEditContract(null);
+                  // Refresh messages to show the new contract bubble
+                  if (activeConversation?._id) {
+                    messageAPI.getMessages(activeConversation._id)
+                      .then((res) => setMessages(res.data || []))
+                      .catch(() => {});
+                  }
+                }}
+              />
+            )}
           </>
         )}
       </div>

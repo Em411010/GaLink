@@ -7,6 +7,7 @@ import {
   uploadSelfie,
   uploadClearance,
   addPortfolioItem,
+  updatePortfolioItem,
   removePortfolioItem,
 } from "../controllers/verification.controller.js";
 import { protect } from "../middleware/auth.middleware.js";
@@ -21,6 +22,7 @@ router.post("/government-id", protect, imageUpload.single("governmentId"), uploa
 router.post("/selfie", protect, imageUpload.single("selfie"), uploadSelfie);
 router.post("/clearance", protect, imageUpload.single("clearance"), uploadClearance);
 router.post("/portfolio", protect, imageUpload.single("portfolioImage"), addPortfolioItem);
+router.patch("/portfolio/:itemId", protect, imageUpload.single("portfolioImage"), updatePortfolioItem);
 router.delete("/portfolio/:itemId", protect, removePortfolioItem);
 
 export default router;

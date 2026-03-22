@@ -1,8 +1,9 @@
 ﻿import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { Toaster } from "react-hot-toast";
 import useAuthStore from "./store/useAuthStore";
 import useThemeStore from "./store/useThemeStore";
+import { userAPI } from "./services/api";
 import Layout from "./components/layout/Layout";
 import AdminLayout from "./components/layout/AdminLayout";
 import LandingPage from "./pages/LandingPage";
@@ -16,6 +17,8 @@ import MessagesPage from "./pages/MessagesPage";
 import ProfilePage from "./pages/ProfilePage";
 import PostDetailPage from "./pages/PostDetailPage";
 import VerificationPage from "./pages/VerificationPage";
+import ContractsPage from "./pages/ContractsPage";
+import ContractDetailPage from "./pages/ContractDetailPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AdminUsers from "./pages/AdminUsers";
 import AdminClearances from "./pages/AdminClearances";
@@ -35,9 +38,32 @@ function GuestRoute({ children }) {
   return !user ? children : <Navigate to="/feed" replace />;
 }
 export default function App() {
-  const { fetchMe } = useAuthStore();
+  const { fetchMe, user } = useAuthStore();
   const { theme } = useThemeStore();
+  const locationSent = useRef(false);
+
   useEffect(() => { fetchMe(); }, []);
+
+  // Keep user's GPS location up to date — only if coords are inside the Philippines
+  useEffect(() => {
+    if (!user || locationSent.current) return;
+    if (!navigator.geolocation) return;
+    locationSent.current = true;
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        const { latitude: lat, longitude: lng } = coords;
+        const inPH = lat >= 4 && lat <= 22 && lng >= 115 && lng <= 130;
+        if (inPH) {
+          userAPI.updateLocation({ lat, lng }).catch(() => {});
+        } else {
+          locationSent.current = false; // allow retry if user moves to PH
+        }
+      },
+      () => { locationSent.current = false; },
+      { timeout: 8000, maximumAge: 300000 }
+    );
+  }, [user]);
+
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
   }, [theme]);
@@ -57,6 +83,8 @@ export default function App() {
           <Route path="/profile/:id" element={<ProfilePage />} />
           <Route path="/verification" element={<VerificationPage />} />
           <Route path="/post/:id" element={<PostDetailPage />} />
+          <Route path="/contracts" element={<ContractsPage />} />
+          <Route path="/contracts/:id" element={<ContractDetailPage />} />
         </Route>
         <Route element={<AdminRoute><AdminLayout /></AdminRoute>}>
           <Route path="/admin" element={<AdminDashboard />} />

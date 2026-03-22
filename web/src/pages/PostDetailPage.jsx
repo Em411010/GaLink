@@ -32,7 +32,6 @@ export default function PostDetailPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-4">
-      {/* Back button */}
       <button
         onClick={() => navigate(-1)}
         className="btn btn-ghost btn-sm gap-2 text-base-content/60 hover:text-base-content"

@@ -1,4 +1,5 @@
-﻿import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { Heart, MessageCircle, Trash2, MapPin, Send, ChevronDown, ChevronUp, CornerDownRight } from "lucide-react";
 import { feedAPI } from "../../services/api";
 import useAuthStore from "../../store/useAuthStore";
@@ -95,9 +96,8 @@ export default function PostCard({ post, onDelete, initialShowComments = false }
   return (
     <div className="card bg-base-100 shadow-sm border border-base-200">
       <div className="card-body p-4">
-        {/* Author header */}
         <div className="flex items-start gap-3">
-          <div className="avatar shrink-0">
+          <Link to={`/profile/${post.author?._id}`} className="avatar shrink-0 hover:opacity-80 transition-opacity">
             <div className="w-10 rounded-full">
               {post.author?.profilePhoto ? (
                 <img src={post.author.profilePhoto} alt={post.author.name} />
@@ -107,11 +107,11 @@ export default function PostCard({ post, onDelete, initialShowComments = false }
                 </div>
               )}
             </div>
-          </div>
+          </Link>
           <div className="flex-1 min-w-0">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <span className="font-semibold text-sm">{post.author?.name}</span>
+                <Link to={`/profile/${post.author?._id}`} className="font-semibold text-sm hover:underline">{post.author?.name}</Link>
                 {post.author?.badgeLevel > 0 || post.author?.isHirer
                   ? <UserBadges user={post.author} size="xs" />
                   : null}
@@ -133,8 +133,6 @@ export default function PostCard({ post, onDelete, initialShowComments = false }
             )}
           </div>
         </div>
-
-        {/* Action bar */}
         <div className="flex items-center gap-3 mt-2 pt-2 border-t border-base-200">
           <button
             onClick={handleLike}
@@ -153,16 +151,12 @@ export default function PostCard({ post, onDelete, initialShowComments = false }
           </button>
           <span className="ml-auto text-xs text-base-content/30">{timeAgo(post.createdAt)}</span>
         </div>
-
-        {/* Comments section */}
         {showComments && (
           <div className="mt-3 space-y-3">
-            {/* Comment list */}
             {comments.length > 0 ? (
               <div className="space-y-3 max-h-80 overflow-y-auto pr-1">
                 {comments.map((c, i) => (
                   <div key={c._id || i}>
-                    {/* Comment row */}
                     <div className="flex items-start gap-2">
                       <Avatar src={c.author?.profilePhoto} name={c.author?.name} />
                       <div className="flex-1 min-w-0">
@@ -185,8 +179,6 @@ export default function PostCard({ post, onDelete, initialShowComments = false }
                         </button>
                       </div>
                     </div>
-
-                    {/* Nested replies */}
                     {c.replies?.length > 0 && (
                       <div className="ml-9 mt-1.5 space-y-1.5 border-l-2 border-base-content/10 pl-3">
                         {c.replies.map((r, j) => (
@@ -203,8 +195,6 @@ export default function PostCard({ post, onDelete, initialShowComments = false }
                         ))}
                       </div>
                     )}
-
-                    {/* Inline reply input */}
                     {replyingTo === c._id && (
                       <form
                         onSubmit={(e) => handleReply(e, c._id)}
@@ -241,8 +231,6 @@ export default function PostCard({ post, onDelete, initialShowComments = false }
             ) : (
               <p className="text-xs text-base-content/40 text-center py-2">No comments yet. Be the first!</p>
             )}
-
-            {/* New comment input */}
             <form onSubmit={handleComment} className="flex items-center gap-2 mt-1">
               <Avatar src={user?.profilePhoto} name={user?.name} />
               <div className="flex-1 flex items-center gap-2 bg-base-200/60 rounded-full px-3 py-1.5">

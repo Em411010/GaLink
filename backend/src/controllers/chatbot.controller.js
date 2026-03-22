@@ -15,11 +15,17 @@ export async function interpretUserProblem(req, res, next) {
     const interpretation = await interpretProblem(message, dialect);
 
     // Find matching freelancers
+    const userCoords = req.user?.coords?.coordinates?.length === 2
+      ? { lng: req.user.coords.coordinates[0], lat: req.user.coords.coordinates[1] }
+      : undefined;
     const matches = await findMatches({
       requiredSkills: interpretation.requiredSkills,
       urgencyLevel: interpretation.urgencyLevel,
       locationRelevant: interpretation.locationRelevant,
       userLocation: req.user?.location,
+      userCoords,
+      budget: interpretation.estimatedBudget || 0,
+      excludeId: req.user?._id,
     });
 
     // Store chatbot query for personalization

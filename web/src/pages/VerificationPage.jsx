@@ -6,7 +6,7 @@ import {
   Shield, ShieldCheck, Briefcase, Star,
   Mail, CreditCard, Camera, FileText,
   FolderOpen, ScrollText, Check, ChevronRight,
-  Upload, Trash2, ExternalLink, Loader2,
+  Upload, Trash2, ExternalLink, Loader2, Pencil,
   Lock, AlertTriangle, Clock,
 } from "lucide-react";
 import { BadgeCard } from "../components/badge/BadgeSystem";
@@ -40,9 +40,11 @@ export default function VerificationPage() {
   const portfolioImageRef = useRef(null);
 
   // Portfolio form
-  const [portfolioForm, setPortfolioForm] = useState({ title: "", description: "", link: "" });
+  const [portfolioForm, setPortfolioForm] = useState({ title: "", description: "", link: "", tags: "" });
   const [portfolioImage, setPortfolioImage] = useState(null);
+  const [portfolioImagePreview, setPortfolioImagePreview] = useState(null);
   const [showPortfolioForm, setShowPortfolioForm] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
 
   // Email OTP flow
   const [emailOtpSent, setEmailOtpSent] = useState(false);
@@ -140,12 +142,14 @@ export default function VerificationPage() {
       fd.append("title", portfolioForm.title);
       fd.append("description", portfolioForm.description);
       fd.append("link", portfolioForm.link);
+      fd.append("tags", portfolioForm.tags);
       if (portfolioImage) fd.append("portfolioImage", portfolioImage);
       const res = await verificationAPI.addPortfolio(fd);
       toast.success("Portfolio item added!");
       setBadgeLevel(res.data.badgeLevel);
-      setPortfolioForm({ title: "", description: "", link: "" });
+      setPortfolioForm({ title: "", description: "", link: "", tags: "" });
       setPortfolioImage(null);
+      setPortfolioImagePreview(null);
       setShowPortfolioForm(false);
       await fetchStatus();
       await refreshUser();
@@ -167,6 +171,46 @@ export default function VerificationPage() {
     }
   };
 
+  const handleEditPortfolio = (item) => {
+    setEditingItem(item);
+    setPortfolioForm({
+      title: item.title,
+      description: item.description || "",
+      link: item.link || "",
+      tags: item.tags?.join(", ") || "",
+    });
+    setPortfolioImage(null);
+    setPortfolioImagePreview(null);
+    setShowPortfolioForm(true);
+  };
+
+  const handleUpdatePortfolio = async (e) => {
+    e.preventDefault();
+    if (!portfolioForm.title) return toast.error("Title is required");
+    setSubmitting("portfolio");
+    try {
+      const fd = new FormData();
+      fd.append("title", portfolioForm.title);
+      fd.append("description", portfolioForm.description);
+      fd.append("link", portfolioForm.link);
+      fd.append("tags", portfolioForm.tags);
+      if (portfolioImage) fd.append("portfolioImage", portfolioImage);
+      await verificationAPI.updatePortfolio(editingItem._id, fd);
+      toast.success("Portfolio item updated!");
+      setPortfolioForm({ title: "", description: "", link: "", tags: "" });
+      setPortfolioImage(null);
+      setPortfolioImagePreview(null);
+      setEditingItem(null);
+      setShowPortfolioForm(false);
+      await fetchStatus();
+      await refreshUser();
+    } catch {
+      toast.error("Failed to update portfolio item");
+    } finally {
+      setSubmitting(null);
+    }
+  };
+
   const handleResumeUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -175,7 +219,12 @@ export default function VerificationPage() {
       const fd = new FormData();
       fd.append("resume", file);
       const res = await userAPI.uploadResume(fd);
-      toast.success("Resume uploaded!");
+      const skillCount = res.data.extractedData?.skills?.length || 0;
+      toast.success(
+        skillCount > 0
+          ? `Resume uploaded! ${skillCount} skill${skillCount > 1 ? "s" : ""} auto-extracted.`
+          : "Resume uploaded!"
+      );
       updateUser(res.data.user);
       await fetchStatus();
     } catch {
@@ -195,17 +244,13 @@ export default function VerificationPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6 pb-10">
-      {/* ── Header ──────────────────────────────────────────────── */}
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-extrabold tracking-tight">Verification Center</h1>
         <p className="text-base-content/60">Complete steps to unlock platform features</p>
       </div>
-
-      {/* ── Data Privacy Terms & Agreement ─────────────────────── */}
       {!agreedToTerms && (
         <div className="card border-2 border-primary/40 bg-primary/5 shadow-lg">
           <div className="card-body p-6 space-y-4">
-            {/* Header */}
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-primary/15 text-primary flex items-center justify-center flex-shrink-0">
                 <Lock size={20} />
@@ -215,11 +260,7 @@ export default function VerificationPage() {
                 <p className="text-xs text-base-content/50">Required before proceeding with verification</p>
               </div>
             </div>
-
-            {/* Divider */}
             <div className="divider my-0" />
-
-            {/* Terms body */}
             <div className="bg-base-100 rounded-xl border border-base-300 p-4 max-h-[calc(100vh-22rem)] overflow-y-auto text-sm space-y-4 leading-relaxed scrollbar-thin">
               <p className="font-bold text-base text-center">TERMS AND CONDITIONS &amp; DATA PRIVACY NOTICE</p>
               <p className="text-base-content/70 text-center text-xs">GaLink Platform — Verification Center<br />In accordance with Republic Act No. 10173 (Data Privacy Act of 2012)</p>
@@ -296,8 +337,6 @@ export default function VerificationPage() {
                 </div>
               </div>
             </div>
-
-            {/* Checkbox */}
             <label className="flex items-start gap-3 cursor-pointer select-none group">
               <input
                 type="checkbox"
@@ -309,8 +348,6 @@ export default function VerificationPage() {
                 I have read and understood the Data Privacy Notice above. I voluntarily consent to the collection and processing of my personal data in accordance with <strong>Republic Act No. 10173 (Data Privacy Act of 2012)</strong>.
               </span>
             </label>
-
-            {/* Agree button */}
             <button
               className="btn btn-primary w-full gap-2"
               disabled={!termsChecked}
@@ -322,14 +359,8 @@ export default function VerificationPage() {
           </div>
         </div>
       )}
-
-      {/* ── Verification content (shown only after agreement) ─── */}
       {agreedToTerms && (<>
-
-      {/* ── Current Badge ──────────────────────────────────────── */}
       <BadgeCard level={badgeLevel} />
-
-      {/* ── Progress Bar ───────────────────────────────────────── */}
       <div className="flex items-center gap-1 px-2">
         {[0, 1, 2, 3].map((lvl) => (
           <div key={lvl} className="flex-1 flex items-center gap-1">
@@ -346,8 +377,6 @@ export default function VerificationPage() {
           </div>
         ))}
       </div>
-
-      {/* ── Level Sections ─────────────────────────────────────── */}
       {LEVEL_META.map(({ level, label, emoji, color, accent, description }) => {
         const section = checklist?.[`level${level}`];
         if (!section) return null;
@@ -367,7 +396,6 @@ export default function VerificationPage() {
             }`}
           >
             <div className="card-body p-5">
-              {/* Section header */}
               <div className="flex items-center gap-3 mb-3">
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isUnlocked ? `bg-${accent}/20 ${color}` : "bg-base-200 text-base-content/40"}`}>
                   {level === 1 ? <ShieldCheck size={20} /> : level === 2 ? <Briefcase size={20} /> : <Star size={20} />}
@@ -381,8 +409,6 @@ export default function VerificationPage() {
                 </div>
                 {allDone && <Check className={color} size={22} />}
               </div>
-
-              {/* Checklist items */}
               <div className="space-y-2">
                 {section.items.map((item) => (
                   <div
@@ -399,8 +425,6 @@ export default function VerificationPage() {
                     <span className={`flex-1 text-sm ${item.done ? "line-through text-base-content/40" : "font-medium"}`}>
                       {item.label}
                     </span>
-
-                    {/* Action buttons */}
                     {!item.done && renderAction(item.key)}
                   </div>
                 ))}
@@ -409,25 +433,38 @@ export default function VerificationPage() {
           </div>
         );
       })}
-
-      {/* ── Portfolio Section (for Level 2) ────────────────────── */}
       {badgeLevel >= 1 && (
         <div className="card border border-base-300 shadow-sm">
           <div className="card-body p-5">
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-bold flex items-center gap-2">
                 <FolderOpen size={18} /> Portfolio
+                {user?.portfolio?.length > 0 && (
+                  <span className="badge badge-ghost badge-sm">{user.portfolio.length}</span>
+                )}
               </h3>
               <button
                 className="btn btn-primary btn-sm gap-1"
-                onClick={() => setShowPortfolioForm(!showPortfolioForm)}
+                onClick={() => {
+                  if (showPortfolioForm) {
+                    setEditingItem(null);
+                    setPortfolioImagePreview(null);
+                    setPortfolioForm({ title: "", description: "", link: "", tags: "" });
+                  }
+                  setShowPortfolioForm(!showPortfolioForm);
+                }}
               >
                 {showPortfolioForm ? "Cancel" : "+ Add Item"}
               </button>
             </div>
 
             {showPortfolioForm && (
-              <form onSubmit={handleAddPortfolio} className="space-y-3 mb-4 bg-base-200/50 rounded-xl p-4">
+              <form onSubmit={editingItem ? handleUpdatePortfolio : handleAddPortfolio} className="space-y-3 mb-4 bg-base-200/50 rounded-xl p-4">
+                {editingItem && (
+                  <p className="text-xs text-primary font-semibold flex items-center gap-1">
+                    <Pencil size={12} /> Editing: {editingItem.title}
+                  </p>
+                )}
                 <input
                   type="text"
                   placeholder="Project title *"
@@ -449,15 +486,43 @@ export default function VerificationPage() {
                   value={portfolioForm.link}
                   onChange={(e) => setPortfolioForm({ ...portfolioForm, link: e.target.value })}
                 />
+                <input
+                  type="text"
+                  placeholder="Tags: Web, Design, Branding (optional, comma-separated)"
+                  className="input input-bordered w-full input-sm"
+                  value={portfolioForm.tags}
+                  onChange={(e) => setPortfolioForm({ ...portfolioForm, tags: e.target.value })}
+                />
                 <div className="flex items-center gap-3">
                   <label className="btn btn-ghost btn-sm gap-1">
                     <Upload size={14} /> Image
-                    <input type="file" accept="image/*" className="hidden" ref={portfolioImageRef}
-                      onChange={(e) => setPortfolioImage(e.target.files?.[0] || null)} />
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      ref={portfolioImageRef}
+                      onChange={(e) => {
+                        const file = e.target.files?.[0] || null;
+                        setPortfolioImage(file);
+                        setPortfolioImagePreview(file ? URL.createObjectURL(file) : null);
+                      }}
+                    />
                   </label>
-                  {portfolioImage && <span className="text-xs text-base-content/60">{portfolioImage.name}</span>}
-                  <button type="submit" className="btn btn-primary btn-sm ml-auto" disabled={submitting === "portfolio"}>
-                    {submitting === "portfolio" ? <Loader2 size={14} className="animate-spin" /> : "Add"}
+                  {portfolioImagePreview ? (
+                    <img src={portfolioImagePreview} alt="preview" className="h-10 w-16 object-cover rounded-lg" />
+                  ) : editingItem?.imageUrl ? (
+                    <img src={editingItem.imageUrl} alt="current" className="h-10 w-16 object-cover rounded-lg opacity-60" />
+                  ) : portfolioImage ? (
+                    <span className="text-xs text-base-content/60">{portfolioImage.name}</span>
+                  ) : null}
+                  <button type="submit" className="btn btn-primary btn-sm ml-auto gap-1" disabled={submitting === "portfolio"}>
+                    {submitting === "portfolio" ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : editingItem ? (
+                      <><Pencil size={13} /> Save Changes</>
+                    ) : (
+                      "Add"
+                    )}
                   </button>
                 </div>
               </form>
@@ -466,25 +531,62 @@ export default function VerificationPage() {
             {user?.portfolio?.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {user.portfolio.map((item) => (
-                  <div key={item._id} className="bg-base-200/50 rounded-xl p-3 flex flex-col gap-1">
-                    {item.imageUrl && <img src={item.imageUrl} alt={item.title} className="rounded-lg w-full h-32 object-cover" />}
-                    <p className="font-semibold text-sm">{item.title}</p>
-                    {item.description && <p className="text-xs text-base-content/60 line-clamp-2">{item.description}</p>}
-                    <div className="flex items-center gap-2 mt-auto pt-1">
+                  <div
+                    key={item._id}
+                    className={`group relative rounded-xl overflow-hidden bg-base-200 aspect-video ${editingItem?._id === item._id ? "ring-2 ring-primary" : ""}`}
+                  >
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.title} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full flex flex-col items-center justify-center gap-2 text-base-content/30 p-4">
+                        <FolderOpen size={28} />
+                        <span className="text-xs font-medium text-center leading-snug">{item.title}</span>
+                      </div>
+                    )}
+                    <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-3">
+                      <p className="text-white font-semibold text-sm leading-tight">{item.title}</p>
+                      {item.tags?.length > 0 && (
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {item.tags.map((tag, i) => (
+                            <span key={i} className="badge badge-xs bg-white/20 text-white border-0">{tag}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button
+                        className="btn btn-xs btn-ghost bg-black/50 text-white hover:bg-black/70"
+                        onClick={() => handleEditPortfolio(item)}
+                        title="Edit"
+                      >
+                        <Pencil size={11} />
+                      </button>
                       {item.link && (
-                        <a href={item.link} target="_blank" rel="noreferrer" className="btn btn-ghost btn-xs gap-1">
-                          <ExternalLink size={12} /> View
+                        <a
+                          href={item.link}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="btn btn-xs btn-ghost bg-black/50 text-white hover:bg-black/70"
+                          title="View project"
+                        >
+                          <ExternalLink size={11} />
                         </a>
                       )}
-                      <button className="btn btn-ghost btn-xs text-error ml-auto" onClick={() => handleRemovePortfolio(item._id)}>
-                        <Trash2 size={12} />
+                      <button
+                        className="btn btn-xs btn-ghost bg-black/50 text-error hover:bg-black/70"
+                        onClick={() => handleRemovePortfolio(item._id)}
+                        title="Remove"
+                      >
+                        <Trash2 size={11} />
                       </button>
                     </div>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-base-content/50 text-center py-4">No portfolio items yet</p>
+              <p className="text-sm text-base-content/50 text-center py-4">
+                No portfolio items yet. Add projects to showcase your work to clients!
+              </p>
             )}
           </div>
         </div>
@@ -591,18 +693,6 @@ export default function VerificationPage() {
               {isLoading ? <Loader2 size={14} className="animate-spin" /> : <><FileText size={14} /> Upload</>}
             </label>
           </>
-        );
-      case "skills":
-        return (
-          <a href="/profile" className="btn btn-sm btn-ghost gap-1">
-            <ChevronRight size={14} /> Edit Profile
-          </a>
-        );
-      case "hourlyRate":
-        return (
-          <a href="/profile" className="btn btn-sm btn-ghost gap-1">
-            <ChevronRight size={14} /> Set Rate
-          </a>
         );
       case "portfolio":
         return (

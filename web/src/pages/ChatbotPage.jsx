@@ -3,12 +3,14 @@ import useChatbotStore from "../store/useChatbotStore";
 import useAuthStore from "../store/useAuthStore";
 import FreelancerCard from "../components/discover/FreelancerCard";
 import { AccessGate } from "../components/badge/BadgeSystem";
-import { Send, Trash2, Bot, User } from "lucide-react";
+import { Send, Trash2, Bot, User, MapPin } from "lucide-react";
+import useGeoLocation from "../hooks/useGeoLocation";
 
 export default function ChatbotPage() {
   const { user } = useAuthStore();
-  const { messages, recommendations, isLoading, sendMessage, clearChat, phase } =
+  const { messages, recommendations, isLoading, sendMessage, clearChat, phase, interpretation } =
     useChatbotStore();
+  const { locationString } = useGeoLocation();
   const [input, setInput] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   const messagesEndRef = useRef(null);
@@ -17,10 +19,15 @@ export default function ChatbotPage() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const buildMeta = () => ({
+    location: locationString || undefined,
+    timestamp: new Date().toISOString(),
+  });
+
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!input.trim() || isLoading) return;
-    sendMessage(input.trim());
+    sendMessage(input.trim(), buildMeta());
     setInput("");
   };
 
@@ -67,11 +74,9 @@ export default function ChatbotPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-        {/* Chat area */}
         <div className="lg:col-span-3">
           <div className="card bg-base-100 shadow-md">
             <div className="card-body p-5">
-              {/* Messages */}
               <div className="h-[65vh] overflow-y-auto space-y-4 mb-4 pr-1">
                 {messages.map((msg, i) => (
                   <div
@@ -98,6 +103,24 @@ export default function ChatbotPage() {
                         {msg.content}
                       </div>
                     </div>
+                    {msg.role === "user" && (msg.timestamp || msg.location) && (
+                      <div className="chat-footer text-xs opacity-40 flex flex-wrap items-center gap-1 mt-0.5">
+                        {msg.timestamp && (
+                          <>
+                            <span>{new Date(msg.timestamp).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</span>
+                            <span>·</span>
+                            <span>{new Date(msg.timestamp).toLocaleDateString("en-PH", { month: "short", day: "numeric", year: "numeric" })}</span>
+                          </>
+                        )}
+                        {msg.location && (
+                          <>
+                            <span>·</span>
+                            <MapPin size={9} />
+                            <span>{msg.location}</span>
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ))}
                 {isLoading && (
@@ -109,8 +132,6 @@ export default function ChatbotPage() {
                 )}
                 <div ref={messagesEndRef} />
               </div>
-
-              {/* Quick query chips — shown only before user sends anything */}
               {messages.length === 1 && !isLoading && (
                 <div className="flex flex-wrap gap-2 mb-3">
                   {[
@@ -124,15 +145,13 @@ export default function ChatbotPage() {
                       key={chip}
                       type="button"
                       className="btn btn-sm btn-outline rounded-full text-xs"
-                      onClick={() => sendMessage(chip)}
+                      onClick={() => sendMessage(chip, buildMeta())}
                     >
                       {chip}
                     </button>
                   ))}
                 </div>
               )}
-
-              {/* Input */}
               <form onSubmit={handleSubmit} className="flex gap-2">
                 <input
                   type="text"
@@ -159,8 +178,6 @@ export default function ChatbotPage() {
             </div>
           </div>
         </div>
-
-        {/* Recommendations sidebar */}
         <div className="lg:col-span-2">
           <div className="sticky top-20">
             <h3 className="font-bold text-base mb-3">Recommended Freelancers</h3>
@@ -173,9 +190,30 @@ export default function ChatbotPage() {
               </div>
             ) : (
               <div className="space-y-3 overflow-y-auto max-h-[65vh] pr-1">
-                {recommendations.slice(0, 8).map((freelancer) => (
-                  <FreelancerCard key={freelancer._id} freelancer={freelancer} />
-                ))}
+                {recommendations.slice(0, 8).map((freelancer) => {
+                  const lastUserMsg = [...messages].reverse().find((m) => m.role === "user");
+                  // Build a clean contract description: prefer AI-generated, then a composed summary,
+                  // then fall back to the raw last message
+                  const contractDesc =
+                    interpretation?.contractDescription ||
+                    (interpretation?.summary && interpretation?.problemType
+                      ? `I need a ${interpretation.problemType.toLowerCase()} — ${interpretation.summary.toLowerCase()}. ${
+                          lastUserMsg?.content ? `Details: ${lastUserMsg.content}` : ""
+                        }`.trim()
+                      : lastUserMsg?.content || "");
+                  return (
+                    <FreelancerCard
+                      key={freelancer._id}
+                      freelancer={freelancer}
+                      prefill={{
+                        title: interpretation?.summary || "",
+                        description: contractDesc,
+                        skills: interpretation?.requiredSkills || [],
+                        estimatedBudget: interpretation?.estimatedBudget || 0,
+                      }}
+                    />
+                  );
+                })}
               </div>
             )}
           </div>

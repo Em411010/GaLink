@@ -23,7 +23,8 @@ export const userAPI = {
   toggleAvailability: () => api.put("/users/availability/toggle"),
   getSidebarData: () => api.get("/users/sidebar/data"),
   getSuggestedUsers: () => api.get("/users/sidebar/suggestions"),
-  getSeminars: () => api.get("/users/sidebar/seminars"),
+  getSeminars: (refresh = false) => api.get("/users/sidebar/seminars", { params: refresh ? { refresh: "true" } : {} }),
+  updateLocation: (data) => api.put("/users/location", data),
 };
 
 // Feed
@@ -83,6 +84,19 @@ export const notificationAPI = {
   markOneRead: (id) => api.put(`/notifications/${id}/read`),
 };
 
+// Contracts
+export const contractAPI = {
+  getUserContracts: (userId) => api.get(`/contracts/user/${userId}`),
+  getMyContracts: (params) => api.get("/contracts/me", { params }),
+  getById: (id) => api.get(`/contracts/${id}`),
+  createContract: (data) => api.post("/contracts", data),
+  acceptContract: (id) => api.put(`/contracts/${id}/accept`),
+  declineContract: (id) => api.put(`/contracts/${id}/decline`),
+  updateStatus: (id, status, extra = {}) => api.put(`/contracts/${id}/status`, { status, ...extra }),
+  requestModification: (id, data) => api.post(`/contracts/${id}/modification-request`, data),
+  resolveModificationRequest: (id, reqId, action) => api.put(`/contracts/${id}/modification-request/${reqId}`, { action }),
+};
+
 // Verification / Badge
 export const verificationAPI = {
   getStatus: () => api.get("/verification/status"),
@@ -92,6 +106,7 @@ export const verificationAPI = {
   uploadSelfie: (formData) => api.post("/verification/selfie", formData),
   uploadClearance: (formData) => api.post("/verification/clearance", formData),
   addPortfolio: (formData) => api.post("/verification/portfolio", formData),
+  updatePortfolio: (itemId, formData) => api.patch(`/verification/portfolio/${itemId}`, formData),
   removePortfolio: (itemId) => api.delete(`/verification/portfolio/${itemId}`),
 };
 

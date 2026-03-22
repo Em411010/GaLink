@@ -32,7 +32,9 @@ Always respond in valid JSON with exactly these fields:
   "requiredSkills": ["skill1", "skill2"],
   "urgencyLevel": "LOW" | "MEDIUM" | "HIGH",
   "locationRelevant": true | false,
-  "summary": "one-line summary"
+  "estimatedBudget": 0,
+  "summary": "one-line summary",
+  "contractDescription": "1-2 sentence description written from the hirer's point of view, in plain English, describing exactly what work is needed. Direct and easy to understand. Example: 'I need a plumber to fix a leaking kitchen sink as soon as possible. The sink has been leaking nonstop since yesterday and I need it repaired urgently.' Leave empty string if isGeneric is true or needsService is false."
 }
 
 LANGUAGE MATCHING RULE (applies to ALL string fields — empathyLine, clarificationQuestion, summary):
@@ -42,24 +44,36 @@ Detect the language the user is writing in and respond accordingly:
 - If the user writes mostly in Cebuano/Bisaya → respond in Cebuano/Bisaya
 Always match the user's current message language. If they switch languages between messages, switch with them.
 
+BUDGET EXTRACTION:
+- If the user mentions a budget amount (e.g., "budget ko ₱15,000", "around 5000", "₱2k budget"), extract the number into estimatedBudget as a plain number (e.g., 15000, 5000, 2000).
+- If no budget is mentioned, set estimatedBudget to 0.
+- Common currency shortcuts: "k" = 1000, "₱" prefix is PHP.
+
+URGENCY RULES:
+- HIGH: words like "emergency", "urgent", "ASAP", "right now", "ngayon na", "agad", "kailangan na", "dagdag na"
+- MEDIUM: words like "this week", "soon", "sa lalong madaling panahon"
+- LOW: no urgency indicators, general inquiries
+
 Rules:
 
 1. "needsService" = FALSE when the user says the problem is resolved, they no longer need help, or they're just wrapping up the conversation. Phrases: "ok na", "ayos na", "nayos ko na", "never mind", "forget it", "di na kailangan", "thanks anyway", "solved na", "maayos na". For these, write a warm, genuine empathyLine that celebrates their resolution and leaves the door open. Leave all other fields as defaults.
 
-2. "isGeneric" = TRUE in TWO situations:
+2. "isGeneric" = TRUE ONLY when the message is so vague you literally CANNOT determine a single trade/profession. Examples:
+   - "help", "tulong", "may problema", "kailangan ko ng tao", "need someone" — no clue what kind of service
+   - "may sira" / "something is broken" — broken what? No way to pick a trade
+   - "may problema sa bahay" / "house problem" — could be anything
+   - "may problema sa trabaho" / "work problem" — could be anything
 
-   A) The message is completely vague with no category at all: "help", "tulong", "may problema", "kailangan ko ng tao", "may issue", "need someone", single-word or two-word messages with no context.
-
-   B) The message names a BROAD CATEGORY but NOT the specific problem. You cannot pick a skill or trade without asking more. Examples of broad-category-but-still-generic messages:
-      - "may problema sa bahay" / "house problem" / "may sira sa bahay ko" → house is huge: could be electrical, plumbing, roofing, carpentry, painting, pest control, etc.
-      - "may problema sa kuryente" → still broad: is it a tripped breaker, broken outlet, no power in one room, flickering lights, short circuit?
-      - "may tubig" / "water problem" → is it a leaking pipe, low pressure, no hot water, flooding, clogged drain?
-      - "may sira sa sasakyan" / "car problem" → engine, brakes, aircon, tires, electrical?
-      - "may problema sa trabaho" / "work problem" / "office problem" → IT, HR, legal, design?
-      - "may sira" → broken what exactly?
-      - "need repair" → repair of what?
-      - "something is broken at home" → broken what?
-      - Any message where you could name 3+ completely different trades that might apply.
+   "isGeneric" = FALSE (proceed with matching) when the user mentions ANY recognizable trade, service, or specific task. Even if details are missing, you CAN identify the trade. Examples that are NOT generic:
+   - "need a painter" / "paint my walls" / "painting" → Painting (NOT generic!)
+   - "may problema sa kuryente" / "electrical issue" → Electrical
+   - "plumbing problem" / "leaking pipe" / "clogged drain" → Plumbing
+   - "need a carpenter" / "fix my door" → Carpentry
+   - "aircon not working" / "AC repair" → Aircon Repair
+   - "car won't start" / "brake problem" → Automotive Mechanic
+   - "build a website" / "web developer" → Web Development
+   - "need a tutor" / "math tutoring" → Tutoring
+   RULE: If you can name ONE specific trade, it is NOT generic. Set isGeneric=false and put that trade in requiredSkills.
 
    For ALL isGeneric=true cases, write a warm clarificationQuestion that:
       - First, genuinely acknowledges their situation with warmth (don't skip this!)
@@ -83,11 +97,26 @@ Rules:
      * "Running a business and dealing with a POS breakdown at the same time is so much to handle. Let's get you the right tech right away!"
 
 Examples:
-- "may problema sa bahay" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Oh no, house problems can really throw off your whole day! To make sure I find exactly the right person for you, can you tell me what's specifically happening? Is it something like a leaking pipe, an electrical issue, a broken door or ceiling, pest problems, or something else? Just describe what you're seeing and I'll take it from there!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
-- "may sira sa kuryente" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Electrical issues can be really worrying, I completely understand! To connect you with the right electrician, could you tell me a little more about what's happening? For example, is it a tripped breaker, a dead outlet, flickering lights, or no power in a specific room?","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
-- "help" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Of course, I'm right here with you! To make sure I find exactly the right person, could you tell me a little more about what's going on? Is it something at home — like a repair or plumbing issue — or more of a professional service like tech or design? Just tell me in your own words, no worries!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
-- "ayos na, salamat" → {"needsService":false,"isGeneric":false,"clarificationQuestion":"","empathyLine":"That's wonderful to hear! You took care of it — that's great. We're always here whenever you need a hand with anything.","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"summary":""}
-- "My sink has been leaking nonstop since yesterday" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"A non-stop leaking sink is so stressful — the constant dripping and worry about water damage is a lot to deal with overnight. Let's get this sorted for you right away!","problemType":"Plumbing repair","requiredSkills":["Plumbing","Pipe Fitting","Leak Detection"],"urgencyLevel":"HIGH","locationRelevant":true,"summary":"Leaking sink repair"}${languageOverride}`;
+- "may problema sa bahay" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Oh no, house problems can really throw off your whole day! To make sure I find exactly the right person for you, can you tell me what's specifically happening? Is it something like a leaking pipe, an electrical issue, a broken door or ceiling, pest problems, or something else? Just describe what you're seeing and I'll take it from there!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
+- "may sira sa kuryente" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Electrical issues can be really worrying, I completely understand! To connect you with the right electrician, could you tell me a little more about what's happening? For example, is it a tripped breaker, a dead outlet, flickering lights, or no power in a specific room?","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
+- "help" → {"needsService":true,"isGeneric":true,"clarificationQuestion":"Of course, I'm right here with you! To make sure I find exactly the right person, could you tell me a little more about what's going on? Is it something at home — like a repair or plumbing issue — or more of a professional service like tech or design? Just tell me in your own words, no worries!","empathyLine":"","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
+- "ayos na, salamat" → {"needsService":false,"isGeneric":false,"clarificationQuestion":"","empathyLine":"That's wonderful to hear! You took care of it — that's great. We're always here whenever you need a hand with anything.","problemType":"","requiredSkills":[],"urgencyLevel":"LOW","locationRelevant":false,"estimatedBudget":0,"summary":""}
+SKILL NORMALIZATION RULE:
+For "requiredSkills", ONLY use broad trade/profession labels — never specific sub-tasks or task descriptions. Match to the TRADE, not the task. Keep to 1–2 labels max.
+Examples of correct normalization:
+- Fix broken door, window, cabinet, furniture → ["Carpentry"]
+- Leaking pipe, clogged drain, no hot water, faucet dripping → ["Plumbing"]
+- Broken outlet, rewiring, no power in room, flickering lights → ["Electrical"]
+- Repaint walls, exterior/interior painting → ["Painting"]
+- Aircon not cooling, AC cleaning, install aircon → ["Aircon Repair"]
+- Car engine, brake problem, flat tire, transmission → ["Automotive Mechanic"]
+- Build a website, fix web app, e-commerce → ["Web Development"]
+- Logo, flyer, poster, social media graphics → ["Graphic Design"]
+- Math/English tutoring, academic coaching → ["Tutoring"]
+NEVER output sub-tasks as skills. Wrong: ["Door Repair","Pipe Fitting","Leak Detection"]. Right: ["Carpentry"], ["Plumbing"].
+
+- "My sink has been leaking nonstop since yesterday" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"A non-stop leaking sink is so stressful — the constant dripping and worry about water damage is a lot to deal with overnight. Let's get this sorted for you right away!","problemType":"Plumbing repair","requiredSkills":["Plumbing"],"urgencyLevel":"HIGH","locationRelevant":true,"estimatedBudget":0,"summary":"Leaking sink repair"}
+- "Need a plumber urgently, budget is around ₱5k" → {"needsService":true,"isGeneric":false,"clarificationQuestion":"","empathyLine":"Plumbing emergencies are never fun, especially when you need someone right away. Let me find you a reliable plumber ASAP!","problemType":"Plumbing repair","requiredSkills":["Plumbing"],"urgencyLevel":"HIGH","locationRelevant":true,"estimatedBudget":5000,"summary":"Urgent plumbing repair"}${languageOverride}`;
 
   const completion = await getOpenAI().chat.completions.create({
     model: "gpt-3.5-turbo",
@@ -112,6 +141,7 @@ Examples:
       requiredSkills: [],
       urgencyLevel: "MEDIUM",
       locationRelevant: false,
+      estimatedBudget: 0,
       summary: content,
     };
   }
@@ -233,48 +263,50 @@ export async function recommendSeminars(userSkills = [], badgeLevel = 0) {
     ? `The user is a Filipino freelancer/worker with these skills: ${userSkills.slice(0, 6).join(", ")}. Badge level: ${badgeLevel}.`
     : `The user is a new/unverified user in Metro Manila with no profile skills yet (badge level: ${badgeLevel}).`;
 
-  // Real Philippine Facebook pages with working events tabs
-  const REAL_FB_PAGES = {
+  // Real online workshop and seminar platforms
+  const REAL_WORKSHOP_SITES = {
     Tech: [
-      { organizer: "DICT Philippines", link: "https://www.facebook.com/dict.gov.ph/events" },
-      { organizer: "Google Developer Groups Philippines", link: "https://www.facebook.com/gdgph/events" },
-      { organizer: "AWS User Group Philippines", link: "https://www.facebook.com/AWSUGPhilippines/events" },
-      { organizer: "Philippine Software Industry Association", link: "https://www.facebook.com/psiaorgph/events" },
-      { organizer: "TechTalks.ph Community", link: "https://www.facebook.com/techtalksPH/events" },
+      { organizer: "DICT e-Learning Portal", link: "https://elearning.dict.gov.ph" },
+      { organizer: "TESDA Online Program (TOP)", link: "https://top.tesda.gov.ph" },
+      { organizer: "Google Digital Garage", link: "https://learndigital.withgoogle.com/digitalgarage" },
+      { organizer: "Coursera", link: "https://www.coursera.org/search?query=technology" },
+      { organizer: "Udemy", link: "https://www.udemy.com/courses/development/" },
     ],
     Trades: [
-      { organizer: "TESDA Philippines", link: "https://www.facebook.com/TESDA.Official/events" },
-      { organizer: "DOLE Philippines", link: "https://www.facebook.com/doleph/events" },
-      { organizer: "TESDA Metro Manila", link: "https://www.facebook.com/TESDAMetroManila/events" },
-      { organizer: "Philippine Institute of Electrical Engineers", link: "https://www.facebook.com/piee.org.ph/events" },
+      { organizer: "TESDA Online Program (TOP)", link: "https://top.tesda.gov.ph" },
+      { organizer: "DOLE BWSC Training Portal", link: "https://bwsc.dole.gov.ph" },
+      { organizer: "Coursera", link: "https://www.coursera.org/search?query=trades" },
+      { organizer: "Udemy", link: "https://www.udemy.com/courses/teaching-academics/" },
     ],
     Business: [
-      { organizer: "DTI Philippines", link: "https://www.facebook.com/DTIPhilippines/events" },
-      { organizer: "Philippine Chamber of Commerce and Industry", link: "https://www.facebook.com/philippinechamber/events" },
-      { organizer: "Go Negosyo", link: "https://www.facebook.com/GoNegosyo/events" },
-      { organizer: "Philippine Franchise Association", link: "https://www.facebook.com/PhilFranchise/events" },
+      { organizer: "DTI SMED Training", link: "https://smed.dti.gov.ph" },
+      { organizer: "Go Negosyo Events", link: "https://gonegosyo.net/events" },
+      { organizer: "Coursera Business", link: "https://www.coursera.org/search?query=business" },
+      { organizer: "Udemy Business", link: "https://www.udemy.com/courses/business/" },
     ],
     Creative: [
-      { organizer: "Creative Economy Council of the Philippines", link: "https://www.facebook.com/creativeph/events" },
-      { organizer: "Philippine Graphic Arts Guild", link: "https://www.facebook.com/pgag.ph/events" },
-      { organizer: "Film Academy of the Philippines", link: "https://www.facebook.com/FilmAcademyPH/events" },
+      { organizer: "Canva Design School", link: "https://www.canva.com/learn/" },
+      { organizer: "Adobe Education Exchange", link: "https://edex.adobe.com" },
+      { organizer: "Coursera Arts & Design", link: "https://www.coursera.org/search?query=design" },
+      { organizer: "Udemy Design", link: "https://www.udemy.com/courses/design/" },
     ],
     "Soft Skills": [
-      { organizer: "PMAP – People Management Association of the Philippines", link: "https://www.facebook.com/pmaphrm/events" },
-      { organizer: "Toastmasters Philippines", link: "https://www.facebook.com/ToastmastersPhilippines/events" },
-      { organizer: "Dale Carnegie Philippines", link: "https://www.facebook.com/DaleCarnegiePhilippines/events" },
+      { organizer: "Dale Carnegie Training", link: "https://www.dalecarnegie.com/en/courses" },
+      { organizer: "Toastmasters International", link: "https://www.toastmasters.org/find-a-club" },
+      { organizer: "LinkedIn Learning", link: "https://www.linkedin.com/learning/" },
+      { organizer: "Coursera Personal Development", link: "https://www.coursera.org/search?query=soft+skills" },
     ],
   };
 
-  const pagesJson = JSON.stringify(REAL_FB_PAGES);
+  const sitesJson = JSON.stringify(REAL_WORKSHOP_SITES);
 
   const systemPrompt = `You are a seminar and workshop recommender for Filipino workers and freelancers in Metro Manila.
 Today's date: ${today}.
 
 ${context}
 
-You have access to these REAL Philippine Facebook event pages, organized by category:
-${pagesJson}
+You have access to these REAL online workshop and seminar platforms, organized by category:
+${sitesJson}
 
 Generate 5 realistic, relevant seminar/workshop recommendations for this user.
 ${!hasSkills ? "Include: 2 Tech, 2 Trades, 1 Business." : "Tailor 3 seminars to their skills, add 2 complementary growth seminars."}
@@ -317,5 +349,41 @@ Respond ONLY with a valid JSON array of exactly 5 objects:
     return Array.isArray(parsed) ? parsed.slice(0, 5) : [];
   } catch {
     return [];
+  }
+}
+
+/**
+ * Batch-estimate distances between a user's location and a list of freelancer locations
+ * using GPT knowledge of Philippine geography. Returns a Map of index → km.
+ */
+export async function estimateDistancesBatch(userLocation, freelancerLocations) {
+  if (!userLocation || freelancerLocations.length === 0) return new Map();
+  const list = freelancerLocations.map((loc, i) => `${i}: ${loc}`).join("\n");
+  const systemPrompt = `You are a Philippine geography expert. Given a user's location and a numbered list of freelancer locations, estimate the road/travel distance in km between the user and each freelancer.
+
+Return ONLY a valid JSON object where keys are the index numbers (as strings) and values are the estimated distance in km (integer).
+Example: {"0": 5, "1": 120, "2": 45}
+
+Be as accurate as possible using your knowledge of Philippine cities, municipalities, and provinces. If two locations are in the same municipality, return a small number like 1-5. Same province but different city: typically 10-80 km. Different provinces: estimate realistically.`;
+
+  try {
+    const completion = await getOpenAI().chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: `User location: ${userLocation}\n\nFreelancer locations:\n${list}` },
+      ],
+      temperature: 0,
+      max_tokens: 500,
+    });
+    const raw = completion.choices[0]?.message?.content || "{}";
+    const parsed = JSON.parse(raw);
+    const result = new Map();
+    for (const [key, val] of Object.entries(parsed)) {
+      result.set(parseInt(key), typeof val === "number" ? Math.round(val) : parseInt(val) || undefined);
+    }
+    return result;
+  } catch {
+    return new Map();
   }
 }

@@ -78,8 +78,6 @@ export default function AdminUsers() {
         <h1 className="text-2xl font-extrabold tracking-tight">User Management</h1>
         <p className="text-base-content/50 text-sm">View, verify, ban, and manage platform users</p>
       </div>
-
-      {/* Filters */}
       <div className="flex flex-wrap gap-3 items-center">
         <div className="flex items-center gap-2 flex-1 min-w-48">
           <Search size={16} className="text-base-content/40 flex-shrink-0" />
@@ -106,8 +104,6 @@ export default function AdminUsers() {
         </select>
         <span className="text-xs text-base-content/50">{totalCount} users</span>
       </div>
-
-      {/* Table */}
       <div className="overflow-x-auto rounded-xl border border-base-300">
         <table className="table table-sm w-full">
           <thead className="bg-base-200">
@@ -235,8 +231,6 @@ export default function AdminUsers() {
           </tbody>
         </table>
       </div>
-
-      {/* Pagination */}
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
           <button className="btn btn-sm btn-ghost" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
@@ -248,8 +242,6 @@ export default function AdminUsers() {
           </button>
         </div>
       )}
-
-      {/* Revoke Modal */}
       {revokeModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm" onClick={() => setRevokeModal(null)}>
           <div className="card bg-base-100 shadow-2xl w-full max-w-sm mx-4" onClick={(e) => e.stopPropagation()}>

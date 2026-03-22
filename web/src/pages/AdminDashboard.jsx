@@ -39,24 +39,18 @@ export default function AdminDashboard() {
         <h1 className="text-2xl font-extrabold tracking-tight">Dashboard Overview</h1>
         <p className="text-base-content/50 text-sm">Platform statistics at a glance</p>
       </div>
-
-      {/* Main stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={Users} label="Total Users" value={stats?.total} to="/admin/users" />
         <StatCard icon={Clock} label="Pending Clearances" value={stats?.pendingClearances} color="text-warning" to="/admin/clearances" />
         <StatCard icon={FileText} label="Total Posts" value={stats?.totalPosts} color="text-info" to="/admin/posts" />
         <StatCard icon={Film} label="Total Reels" value={stats?.totalReels} color="text-secondary" to="/admin/reels" />
       </div>
-
-      {/* Secondary stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <StatCard icon={UserPlus} label="New Users (7d)" value={stats?.recentUsers} color="text-success" />
         <StatCard icon={ShieldCheck} label="Pending KYC" value={stats?.pendingKYC} color="text-info" />
         <StatCard icon={Ban} label="Banned Users" value={stats?.banned} color="text-error" />
         <StatCard icon={TrendingUp} label="Verified Freelancers" value={stats?.levelMap?.[3]} color="text-warning" />
       </div>
-
-      {/* Badge breakdown */}
       {stats && (
         <div className="card bg-base-100 border border-base-300 shadow-sm">
           <div className="card-body p-5">

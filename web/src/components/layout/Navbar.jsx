@@ -1,4 +1,4 @@
-﻿import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import {
   Home,
@@ -27,6 +27,8 @@ import {
   XCircle,
   FileText,
   Trash2,
+  ClipboardList,
+  AlertTriangle,
 } from "lucide-react";
 import useAuthStore from "../../store/useAuthStore";
 import useNotificationStore from "../../store/useNotificationStore";
@@ -39,6 +41,7 @@ const NAV_LINKS = [
   { to: "/ai-assistant", icon: Bot, label: "AI Assistant" },
   { to: "/reels", icon: Film, label: "Reels" },
   { to: "/messages", icon: MessageCircle, label: "Messages" },
+  { to: "/contracts", icon: ClipboardList, label: "Contracts" },
 ];
 
 const HISTORY_KEY = "galink_search_history";
@@ -118,6 +121,12 @@ export default function Navbar() {
       case "verification_revoked": return <XCircle size={14} className="text-error" />;
       case "post_removed": return <Trash2 size={14} className="text-error" />;
       case "reel_removed": return <Trash2 size={14} className="text-error" />;
+      case "contract_received": return <FileText size={14} className="text-primary" />;
+      case "contract_accepted": return <CheckCircle size={14} className="text-success" />;
+      case "contract_declined": return <XCircle size={14} className="text-error" />;
+      case "contract_completed": return <CheckCircle size={14} className="text-success" />;
+      case "contract_cancelled": return <XCircle size={14} className="text-warning" />;
+      case "contract_disputed": return <AlertTriangle size={14} className="text-error" />;
       default: return <Bell size={14} className="text-base-content/50" />;
     }
   };
@@ -138,6 +147,12 @@ export default function Navbar() {
       case "verification_revoked": return "/verification";
       case "post_removed": return "/feed";
       case "reel_removed": return "/reels";
+      case "contract_received":
+      case "contract_accepted":
+      case "contract_declined":
+      case "contract_completed":
+      case "contract_cancelled":
+      case "contract_disputed": return n.contract?._id ? `/contracts/${n.contract._id}` : "/contracts";
       default:           return "/feed";
     }
   };
@@ -164,6 +179,12 @@ export default function Navbar() {
       case "verification_revoked": return n.message || "Your verification has been revoked by an admin.";
       case "post_removed": return n.message || "Your post was removed by an admin.";
       case "reel_removed": return n.message || "Your reel was removed by an admin.";
+      case "contract_received": return `${name} sent you a contract offer`;
+      case "contract_accepted": return `${name} accepted your contract`;
+      case "contract_declined": return `${name} declined your contract`;
+      case "contract_completed": return `${name} marked a contract as completed`;
+      case "contract_cancelled": return `${name} cancelled a contract`;
+      case "contract_disputed": return `${name} raised a dispute on a contract`;
       default: return `${name} sent you a notification`;
     }
   };
@@ -184,7 +205,7 @@ export default function Navbar() {
     navigate("/");
   };
 
-  // ── Search overlay helpers ──
+  // -- Search overlay helpers --
   const openSearch = () => {
     setShowSearch(true);
     setSearchQuery("");
@@ -211,10 +232,8 @@ export default function Navbar() {
 
   return (
     <>
-      {/* Desktop & Tablet navbar */}
       <nav className="sticky top-0 z-40 bg-base-100/80 backdrop-blur-xl border-b border-base-content/5">
         <div className="w-full px-6 h-16 grid grid-cols-3 items-center">
-          {/* Logo — left */}
           <Link to="/feed" className="flex items-center gap-2.5 shrink-0 group">
             <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg shadow-violet-500/20 group-hover:shadow-violet-500/40 transition-shadow">
               <Sparkles className="w-4.5 h-4.5 text-white" />
@@ -223,8 +242,6 @@ export default function Navbar() {
               GaLink
             </span>
           </Link>
-
-          {/* Center nav links — truly centered */}
           <div className="flex justify-center">
           <div className="hidden md:flex items-center bg-base-200/50 rounded-xl p-1 gap-0.5">
             {NAV_LINKS.map(({ to, icon: Icon, label }) => {
@@ -235,7 +252,7 @@ export default function Navbar() {
                   <button
                     key={to}
                     onClick={openSearch}
-                    className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                       isActive
                         ? "bg-primary text-primary-content shadow-sm shadow-primary/25"
                         : "text-base-content/60 hover:text-base-content hover:bg-base-300/50"
@@ -250,7 +267,7 @@ export default function Navbar() {
                 <Link
                   key={to}
                   to={to}
-                  className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`relative flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all duration-200 ${
                     isActive
                       ? "bg-primary text-primary-content shadow-sm shadow-primary/25"
                       : "text-base-content/60 hover:text-base-content hover:bg-base-300/50"
@@ -263,10 +280,7 @@ export default function Navbar() {
             })}
           </div>
           </div>
-
-          {/* Right actions */}
           <div className="flex items-center gap-3 justify-end">
-            {/* Create post button */}
             <div className="tooltip tooltip-bottom" data-tip={!user?.isVerified ? "Verified users only" : undefined}>
               <button
                 className="btn btn-primary btn-sm rounded-xl gap-1.5 shadow-md shadow-primary/20 hover:shadow-primary/40 transition-shadow border-0 disabled:opacity-50 disabled:cursor-not-allowed"
@@ -277,8 +291,6 @@ export default function Navbar() {
                 <span className="hidden sm:inline font-semibold">Post</span>
               </button>
             </div>
-
-            {/* Notification bell */}
             <div className="relative" ref={notifRef}>
               <button
                 onClick={handleBellClick}
@@ -291,8 +303,6 @@ export default function Navbar() {
                   </span>
                 )}
               </button>
-
-              {/* Notification dropdown */}
               {showNotifications && (
                 <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-96 max-w-96 bg-base-100 rounded-2xl shadow-2xl border border-base-content/5 overflow-hidden z-50">
                   <div className="px-4 py-3 bg-base-200/50 border-b border-base-content/5 flex items-center justify-between">
@@ -321,7 +331,6 @@ export default function Navbar() {
                             !n.isRead ? "bg-primary/5" : ""
                           }`}
                         >
-                          {/* Sender avatar */}
                           <div className="relative shrink-0">
                             <div className="w-9 h-9 rounded-full overflow-hidden ring-2 ring-base-content/10">
                               {n.sender?.profilePhoto ? (
@@ -366,8 +375,6 @@ export default function Navbar() {
                 </div>
               )}
             </div>
-
-            {/* Theme toggle */}
             <button
               onClick={toggleTheme}
               className="btn btn-ghost btn-sm btn-circle"
@@ -375,8 +382,6 @@ export default function Navbar() {
             >
               {theme === "corporate" ? <Moon size={18} strokeWidth={2} /> : <Sun size={18} strokeWidth={2} />}
             </button>
-
-            {/* User menu */}
             <div className="dropdown dropdown-end">
               <div
                 tabIndex={0}
@@ -403,7 +408,6 @@ export default function Navbar() {
                 tabIndex={0}
                 className="dropdown-content mt-3 z-50 w-64 bg-base-100 rounded-2xl shadow-2xl border border-base-content/5 overflow-hidden"
               >
-                {/* User info header */}
                 <div className="px-4 py-3 bg-base-200/50 border-b border-base-content/5">
                   <p className="font-semibold text-sm truncate flex items-center gap-1.5">
                     {user?.name}
@@ -467,8 +471,6 @@ export default function Navbar() {
           </div>
         </div>
       </nav>
-
-      {/* Mobile bottom nav */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-base-100/90 backdrop-blur-xl border-t border-base-content/5 safe-area-bottom">
         <div className="flex items-center h-16">
           {NAV_LINKS.map(({ to, icon: Icon, label }) => {
@@ -509,7 +511,6 @@ export default function Navbar() {
               </Link>
             );
           })}
-          {/* Notification bell in mobile nav */}
           <button
             onClick={handleBellClick}
             className="flex-1 flex flex-col items-center justify-center gap-0.5 py-1 transition-colors text-base-content/40 relative"
@@ -526,20 +527,14 @@ export default function Navbar() {
           </button>
         </div>
       </nav>
-
-      {/* ══ Search Dropdown Card ══ */}
       {showSearch && (
         <>
-          {/* Backdrop — dim but still shows content */}
           <div
             className="fixed inset-0 z-40 bg-black/30 backdrop-blur-[2px]"
             onMouseDown={closeSearch}
           />
-
-          {/* Card — anchored just below the navbar */}
           <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 w-full max-w-lg px-4">
             <div className="bg-base-100 rounded-2xl shadow-2xl border border-base-content/8 overflow-hidden">
-              {/* Search input row */}
               <form onSubmit={handleSearchSubmit} className="flex items-center gap-2 px-4 py-3 border-b border-base-content/6">
                 <Search size={16} className="text-base-content/40 shrink-0" />
                 <input
@@ -565,10 +560,7 @@ export default function Navbar() {
                   </button>
                 )}
               </form>
-
-              {/* Dropdown content */}
               <div className="max-h-72 overflow-y-auto px-2 py-2">
-                {/* Typeahead suggestions while typing */}
                 {searchSuggestions.length > 0 && (
                   <div className="mb-1">
                     {searchSuggestions.slice(0, 5).map((s) => (
@@ -583,8 +575,6 @@ export default function Navbar() {
                     ))}
                   </div>
                 )}
-
-                {/* Recent searches */}
                 {!searchQuery.trim() && searchHistory.length > 0 && (
                   <div className="mb-2">
                     <p className="text-[11px] font-semibold text-base-content/35 uppercase tracking-wider px-3 py-1 flex items-center gap-1.5">
@@ -609,8 +599,6 @@ export default function Navbar() {
                     ))}
                   </div>
                 )}
-
-                {/* Popular tags */}
                 {!searchQuery.trim() && (
                   <div className="px-1 pb-1">
                     <p className="text-[11px] font-semibold text-base-content/35 uppercase tracking-wider px-2 py-1 flex items-center gap-1.5">
@@ -630,8 +618,6 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
-
-              {/* Footer action */}
               {searchQuery.trim() && (
                 <div className="px-4 py-2.5 border-t border-base-content/6">
                   <button

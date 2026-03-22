@@ -3,6 +3,8 @@ const messageSchema = new mongoose.Schema({
   conversation: { type: mongoose.Schema.Types.ObjectId, ref: "Conversation", required: true },
   sender: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   text: { type: String, maxlength: 2000, default: "" },
+  messageType: { type: String, enum: ["text", "contract"], default: "text" },
+  contract: { type: mongoose.Schema.Types.ObjectId, ref: "Contract", default: null },
   replyTo: { type: mongoose.Schema.Types.ObjectId, ref: "Message", default: null },
   readBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   attachments: [{ url: String, fileType: String }],

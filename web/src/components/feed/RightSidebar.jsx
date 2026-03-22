@@ -50,8 +50,6 @@ export default function RightSidebar() {
 
   return (
     <aside className="hidden lg:block w-full space-y-4 sticky top-20 self-start max-h-[calc(100vh-5rem)] overflow-y-auto pb-4 scrollbar-thin">
-
-      {/* ── Top Verified Freelancers ── */}
       {topFreelancers.length > 0 && (
         <div className="card bg-base-100 shadow-sm border border-base-200">
           <div className="card-body p-4 gap-3">
@@ -102,8 +100,6 @@ export default function RightSidebar() {
           </div>
         </div>
       )}
-
-      {/* ── Trending Skills ── */}
       {trendingSkills.length > 0 && (
         <div className="card bg-base-100 shadow-sm border border-base-200">
           <div className="card-body p-4 gap-2">
@@ -125,8 +121,6 @@ export default function RightSidebar() {
           </div>
         </div>
       )}
-
-      {/* ── Active Job Posts (hiring) ── */}
       {hiringPosts.length > 0 && (
         <div className="card bg-base-100 shadow-sm border border-base-200">
           <div className="card-body p-4 gap-3">
@@ -151,8 +145,6 @@ export default function RightSidebar() {
           </div>
         </div>
       )}
-
-      {/* ── People You May Know ── */}
       {suggestions.length > 0 && (
         <div className="card bg-base-100 shadow-sm border border-base-200">
           <div className="card-body p-4 gap-3">
@@ -189,8 +181,6 @@ export default function RightSidebar() {
           </div>
         </div>
       )}
-
-      {/* ── AI Skill Match CTA ── */}
       <div className="card bg-gradient-to-br from-secondary/10 to-secondary/5 border border-secondary/20 shadow-sm">
         <div className="card-body p-4 gap-2 items-center text-center">
           <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center">

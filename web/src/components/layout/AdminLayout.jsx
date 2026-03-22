@@ -27,7 +27,6 @@ export default function AdminLayout() {
 
   const sidebarContent = (
     <>
-      {/* Logo */}
       <div className="p-4 border-b border-base-300 flex items-center justify-between">
         <h1 className="text-lg font-extrabold tracking-tight">
           <span className="text-primary">Ga</span>Link
@@ -37,8 +36,6 @@ export default function AdminLayout() {
           <X size={18} />
         </button>
       </div>
-
-      {/* Nav */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
         {NAV_ITEMS.map(({ to, icon: Icon, label, end }) => (
           <NavLink
@@ -59,8 +56,6 @@ export default function AdminLayout() {
           </NavLink>
         ))}
       </nav>
-
-      {/* Bottom */}
       <div className="p-3 border-t border-base-300 space-y-1">
         <NavLink
           to="/feed"
@@ -82,7 +77,6 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen flex bg-base-200">
-      {/* ── Mobile sidebar overlay ──────────────────────────────── */}
       {sidebarOpen && (
         <div className="fixed inset-0 z-50 md:hidden" onClick={() => setSidebarOpen(false)}>
           <div className="absolute inset-0 bg-black/40" />
@@ -94,15 +88,10 @@ export default function AdminLayout() {
           </aside>
         </div>
       )}
-
-      {/* ── Desktop sidebar ─────────────────────────────────────── */}
       <aside className="hidden md:flex w-60 bg-base-100 border-r border-base-300 flex-col flex-shrink-0 sticky top-0 h-screen">
         {sidebarContent}
       </aside>
-
-      {/* ── Main Content ────────────────────────────────────────── */}
       <main className="flex-1 min-w-0">
-        {/* Mobile header with hamburger */}
         <div className="md:hidden sticky top-0 z-30 bg-base-100 border-b border-base-300 px-4 h-14 flex items-center gap-3">
           <button className="btn btn-ghost btn-sm btn-circle" onClick={() => setSidebarOpen(true)}>
             <Menu size={20} />
