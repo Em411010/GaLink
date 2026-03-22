@@ -42,8 +42,7 @@ const useNotificationStore = create((set, get) => ({
   // Connect socket for real-time notifications
   connectSocket: (userId) => {
     if (socket) return; // already connected
-    const baseURL = import.meta.env.VITE_API_URL || "http://localhost:5000";
-    socket = io(baseURL, { query: { userId }, withCredentials: true });
+    socket = io(window.location.origin, { query: { userId }, withCredentials: true });
     socket.on("notification", (notification) => {
       set((state) => ({
         notifications: [notification, ...state.notifications],
