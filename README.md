@@ -593,6 +593,7 @@ The seed creates:
 
 ## License
 
-This project is developed as an academic capstone project aligned with **UN Sustainable Development Goal 8: Decent Work and Economic Growth**.
+This 
+project aligned with **UN Sustainable Development Goal 8: Decent Work and Economic Growth**.
 
 Built with ❤️ for Filipino workers.
